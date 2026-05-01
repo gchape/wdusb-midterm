@@ -1,0 +1,34 @@
+spring:
+  application:
+    name: wdusb-midterm
+
+  main:
+    web-application-type: servlet
+    banner-mode: off
+    log-startup-info: false
+
+  profiles:
+    active: dev
+
+gg:
+  jte:
+    development-mode: true
+    template-location: src/main/jte
+    template-suffix: .jte
+
+---
+
+spring:
+  config:
+    activate:
+      on-profile: dev
+
+  datasource:
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:5432/postgres
+
+logging:
+  level:
+    root: debug
