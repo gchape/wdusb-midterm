@@ -1,14 +1,16 @@
 spring:
   application:
     name: wdusb-midterm
+  profiles:
+    active: dev
 
   main:
     web-application-type: servlet
     banner-mode: off
     log-startup-info: false
 
-  profiles:
-    active: dev
+  jpa:
+    open-in-view: false
 
 gg:
   jte:
@@ -31,4 +33,25 @@ spring:
 
 logging:
   level:
-    root: debug
+    root: info
+
+---
+
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+  datasource:
+    username: ${POSTGRES_USERNAME}
+    password: ${POSTGRES_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+    url: ${POSTGRES_URL}
+
+gg:
+  jte:
+    usePrecompiledTemplates: true
+
+logging:
+  level:
+    root: warn
