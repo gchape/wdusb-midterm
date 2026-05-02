@@ -1,0 +1,73 @@
+@import tech.provokedynamic.wdusbmidterm.model.dto.AuthorResponseDto
+@param authors: List<AuthorResponseDto>
+@param error: String?
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bibliotheca — Add a Book</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+<nav>
+    <a href="/" class="logo">Bibliotheca</a>
+    <div class="nav-links">
+        <a href="/books">Library</a>
+        <a href="/books/new" class="nav-add-btn">+ Add Book</a>
+    </div>
+</nav>
+
+<main>
+    <section class="form-section">
+        <h2>Add a New Book</h2>
+
+        @if(error != null)
+            <div class="form-error">${error}</div>
+        @endif
+
+        <form action="/books/new" method="post" class="book-form">
+            <label>
+                Title
+                <input type="text" name="title" required placeholder="e.g. The Great Gatsby">
+            </label>
+            <label>
+                ISBN
+                <input type="text" name="isbn" required placeholder="e.g. 9780743273565">
+            </label>
+            <label>
+                Genre
+                <input type="text" name="genre" placeholder="e.g. Classic, Fantasy, Horror...">
+            </label>
+            <label>
+                Page Count
+                <input type="number" name="pageCount" min="1" placeholder="e.g. 320">
+            </label>
+            <label>
+                Published Date
+                <input type="date" name="publishedAt">
+            </label>
+            <label>
+                Authors
+                <select name="authorIds" multiple>
+                    @for(author in authors)
+                        <option value="${author.id}">${author.firstname} ${author.lastname}</option>
+                    @endfor
+                </select>
+                <small class="field-hint">Hold Ctrl / Cmd to select multiple authors</small>
+            </label>
+            <div class="form-actions">
+                <button type="submit" class="form-submit-btn">Add Book</button>
+                <a href="/books" class="form-cancel-btn">Cancel</a>
+            </div>
+        </form>
+    </section>
+</main>
+
+<footer>
+    <p>Bibliotheca Book Library System &mdash; Built with KTE &amp; Kotlin</p>
+</footer>
+
+</body>
+</html>

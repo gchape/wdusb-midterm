@@ -1,0 +1,33 @@
+@import gg.jte.Content
+@param title: String
+@param content: Content
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bibliotheca — ${title}</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+<nav>
+    <a href="/" class="logo">Bibliotheca</a>
+    <div class="nav-links">
+        <a href="/books">Library</a>
+        <a href="/books/form" class="nav-add-btn">+ Add Book</a>
+    </div>
+</nav>
+
+<main>
+    <div class="container">
+        ${content}
+    </div>
+</main>
+
+<footer>
+    <p>Bibliotheca Book Library System &mdash; Built with KTE &amp; Kotlin</p>
+</footer>
+
+</body>
+</html>
