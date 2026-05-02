@@ -1,11 +1,9 @@
-# MIDTERM - Book Library System
+# Bibliotheca — Book Library System
 
 ## Overview
 
-This project is a Spring Boot application written in Kotlin. It manages books and authors using a layered architecture
-and exposes RESTful APIs along with a simple server-side UI built with JTE.
-
-The system supports CRUD operations, DTO usage, validation, database migrations with Flyway, and entity relationships.
+A Spring Boot application written in Kotlin for managing a book library. Supports browsing, searching, and adding
+books with full author relationships, server-side rendered UI using JTE/KTE templates, and a REST API.
 
 ---
 
@@ -15,234 +13,185 @@ The application follows a layered architecture:
 
 ### Controller Layer
 
-* Handles HTTP requests and responses
-* Exposes REST endpoints and UI routes
-* Does not contain business logic
+- Handles HTTP requests and responses
+- Split into REST controllers (`/api/**`) and view controllers (`/`, `/books/**`)
+- No business logic
 
 ### Service Layer
 
-* Contains core application logic
-* Coordinates operations between layers
+- Core application logic
+- All write operations are `@Transactional`
+- Read operations use `@Transactional(readOnly = true)`
 
 ### Repository Layer
 
-* Handles database interaction
-* Uses Spring Data JPA (Hibernate)
+- Spring Data JPA with Hibernate
+- Derived query methods and JPQL `@Query` for search
+- `@EntityGraph` used to avoid N+1 on author fetching
 
 ---
 
-## Technologies Used
+## Technologies
 
-* Kotlin (latest stable)
-* JDK 25
-* Spring Boot
-* Spring Web
-* Spring Data JPA (Hibernate)
-* PostgreSQL
-* Flyway (database migrations)
-* JTE (server-side rendering)
-* Swagger (OpenAPI)
-* JUnit (testing)
+| Technology      | Usage                        |
+|-----------------|------------------------------|
+| Kotlin          | Primary language             |
+| JDK 25          | Runtime                      |
+| Spring Boot     | Application framework        |
+| Spring Web MVC  | REST + view controllers      |
+| Spring Data JPA | Repository layer             |
+| Hibernate       | ORM                          |
+| PostgreSQL      | Database                     |
+| Flyway          | Schema migrations            |
+| JTE / KTE       | Server-side template engine  |
+| Logback         | Logging with Spring profiles |
 
 ---
 
 ## Entities and Relationships
 
-### Author
-
-* id: Long
-* name: String
-* email: String
-
 ### Book
 
-* id: Long
-* title: String
-* description: String
+- `id`, `title`, `isbn`, `publishedAt`, `pageCount`, `genre`
+- Soft delete via `deleted` flag
+- `createdAt`, `updatedAt` managed by Hibernate
 
-### Relationship
+### Author
 
-* One Author → Many Books
-* Each Book belongs to one Author (Many-to-One)
+- `id`, `firstname`, `lastname`, `email`, `dob`, `bio`
+- Soft delete via `deleted` flag
+
+### Review
+
+- `id`, `rating` (1–5), `body`
+- Belongs to `Book` and `User`
+
+### User
+
+- `id`, `username`
+
+### Relationships
+
+- `Book ↔ Author`: Many-to-Many via `authors_books` join table (Book is the owning side)
+- `Book → Review`: One-to-Many
+- `User → Review`: One-to-Many
 
 ---
 
 ## API Endpoints
 
-### Author APIs
+### Book REST API (`/api/books`)
 
-| Method | Endpoint      | Description      |
+| Method | Endpoint          | Description                              |
+|--------|-------------------|------------------------------------------|
+| GET    | /api/books        | Get all books (paginated, filter/search) |
+| GET    | /api/books/{isbn} | Get book by ISBN                         |
+| GET    | /api/books/recent | Get recently added books                 |
+
+Query parameters for `GET /api/books`:
+
+- `page` (default: 0)
+- `pageSize` (default: 10)
+- `query` — searches title, ISBN, genre
+- `genre` — filters by genre (case-insensitive)
+
+### Book UI Routes
+
+| Method | Path          | Description      |
 |--------|---------------|------------------|
-| POST   | /authors      | Create author    |
-| GET    | /authors      | Get all authors  |
-| GET    | /authors/{id} | Get author by ID |
-| PUT    | /authors/{id} | Update author    |
-| DELETE | /authors/{id} | Delete author    |
-
-### Book APIs
-
-| Method | Endpoint    | Description    |
-|--------|-------------|----------------|
-| POST   | /books      | Create book    |
-| GET    | /books      | Get all books  |
-| GET    | /books/{id} | Get book by ID |
-| PUT    | /books/{id} | Update book    |
-| DELETE | /books/{id} | Delete book    |
+| GET    | /             | Home page        |
+| GET    | /books        | Browse all books |
+| GET    | /books/{isbn} | Book detail page |
+| GET    | /books/form   | Add book form    |
+| POST   | /books/form   | Submit new book  |
 
 ---
 
-## DTO Usage
+## DTOs
 
-The application uses DTOs to separate internal models from API responses.
+### Request
 
-### Request DTOs
+- `BookRequestDto` — `title`, `isbn`, `publishedAt`, `pageCount`, `genre`, `authorIds`
 
-* AuthorRequestDTO
-* BookRequestDTO
+### Response
 
-### Response DTOs
-
-* AuthorResponseDTO
-* BookResponseDTO
-
-Entities are not returned directly from controllers.
+- `BookResponseDto` — `id`, `title`, `isbn`, `genre`, `pageCount`, `publishedAt`, `authors`
+- `AuthorResponseDto` — `id`, `firstname`, `lastname`, `email`, `dob`
 
 ---
 
-## Validation
+## Soft Delete
 
-Validation is implemented using annotations:
-
-* @NotNull
-* @Size
-* @Email
-
-Invalid requests return appropriate error responses.
+Entities are never hard deleted. Every query filters by `deleted = false`.
+The `deleted` column defaults to `false` at the database level via Hibernate `@Generated`.
 
 ---
 
-## Exception Handling
+## Database Migrations (Flyway)
 
-* Uses Spring Boot default exception handling
-* Prevents application crashes on invalid input
-* Returns appropriate HTTP status codes
+Files located in `src/main/resources/db/migration/`:
 
----
+| File                | Description               |
+|---------------------|---------------------------|
+| `V1__init.sql`      | Schema creation           |
+| `V2__seed_data.sql` | Initial authors and books |
 
-## Database Configuration (PostgreSQL)
-
-```properties id="db01"
-spring.datasource.url=jdbc:postgresql://localhost:5432/library_db
-spring.datasource.username=postgres
-spring.datasource.password=postgres
-spring.jpa.hibernate.ddl-auto=validate
-spring.jpa.show-sql=true
-spring.flyway.enabled=true
-spring.flyway.locations=classpath:db/migration
-```
-
-Make sure PostgreSQL is running and the database `library_db` is created.
+Flyway runs automatically on startup.
 
 ---
 
-## Flyway Migrations
+## Templates (KTE)
 
-Database schema is managed using Flyway.
+Server-side rendering using JTE with Kotlin (`.kte` files) in `src/main/jte/`.
 
-Migration files are located in:
+| Template         | Route           |
+|------------------|-----------------|
+| `layout.kte`     | Shared layout   |
+| `home.kte`       | `/`             |
+| `books.kte`      | `/books`        |
+| `book.kte`       | `/books/{isbn}` |
+| `books-form.kte` | `/books/form`   |
 
-```id="flyway01"
-src/main/resources/db/migration
-```
-
-Example migration:
-
-```sql id="flyway02"
-CREATE TABLE books
-(
-    id           SERIAL PRIMARY KEY,
-    title        VARCHAR(255) NOT NULL,
-    isbn         VARCHAR(20)  NOT NULL UNIQUE,
-    published_at DATE,
-    genre        VARCHAR(50),
-    page_count   INT CHECK (page_count > 0),
-    created_at   TIMESTAMP DEFAULT NOW(),
-    updated_at   TIMESTAMP DEFAULT NOW(),
-    deleted      BOOLEAN   DEFAULT false
-);
-```
-
-Flyway runs automatically on application startup.
+All pages use `@template.layout(title, content)` to avoid repeating nav/footer.
 
 ---
 
-## Swagger Documentation
+## Logging
 
-Swagger UI is available at:
+Configured via `logback-spring.xml` with Spring profiles:
 
-http://localhost:8080/swagger-ui.html
+| Profile | Root Level | SQL Logging                              |
+|---------|------------|------------------------------------------|
+| `dev`   | INFO       | DEBUG + TRACE (Hibernate SQL + bindings) |
+| `prod`  | WARN       | Off                                      |
 
-All endpoints are documented and testable.
-
----
-
-## JTE UI Pages
-
-### Author Pages
-
-* /authors → list authors
-* /authors/create → create author form
-
-### Book Pages
-
-* /books → list books
-* /books/create → create book form
-* /books/{id} → book details
+Hibernate SQL formatting enabled in dev via `hibernate.format_sql=true`.
 
 ---
 
 ## Running the Application
 
-```bash id="run02"
-./mvnw spring-boot:run
+Make sure PostgreSQL is running, then:
+
+```bash
+./mvnw spring-boot:run -Dspring-boot.run.profiles=dev
 ```
 
 ---
 
-## Testing
+## Potential Future Improvements
 
-Testing is implemented using JUnit.
-
-You can run tests with:
-
-```bash id="test01"
-./mvnw test
-```
-
----
-
-## Features
-
-* Layered architecture (Controller / Service / Repository)
-* RESTful APIs
-* CRUD operations
-* One-to-Many relationship
-* DTO pattern
-* Validation
-* Flyway migrations
-* Swagger integration
-* Server-side UI with JTE
-* Unit and integration testing with JUnit
-
----
-
-## Future Improvements
-
-* Pagination and sorting
-* Search by title or author
-* Authentication (Spring Security)
-* File upload for book covers
-* Advanced filtering
+- [ ] Author CRUD — create, edit, delete authors via UI and REST API
+- [ ] Book edit and soft delete via UI
+- [ ] Review system — users can submit 1–5 star ratings and written reviews
+- [ ] User authentication with Spring Security
+- [ ] Input validation with `@Valid` and proper error responses
+- [ ] Global exception handler with `@ControllerAdvice`
+- [ ] Swagger / OpenAPI documentation
+- [ ] Pagination controls on the home page recent section
+- [ ] Book cover image upload
+- [ ] Advanced filtering — by date range, page count, multiple genres
+- [ ] Unit and integration tests with JUnit and Testcontainers
 
 ---
 
