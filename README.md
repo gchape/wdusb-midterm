@@ -225,8 +225,8 @@ docker-compose up database
 
 ## Potential Future Improvements
 
-- [ ] Author CRUD — create, edit, delete authors via UI and REST API
-- [ ] Book edit and soft delete via UI
+- [X] Author CRUD — create, edit, delete authors via UI and REST API
+- [X] Book edit and soft delete via UI
 - [ ] Review system — users can submit 1–5 star ratings and written reviews
 - [ ] User authentication with Spring Security
 - [ ] Input validation with `@Valid` and proper error responses
