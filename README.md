@@ -45,6 +45,7 @@ The application follows a layered architecture:
 | Flyway          | Schema migrations            |
 | JTE / KTE       | Server-side template engine  |
 | Logback         | Logging with Spring profiles |
+| Docker          | Containerisation             |
 
 ---
 
@@ -171,10 +172,53 @@ Hibernate SQL formatting enabled in dev via `hibernate.format_sql=true`.
 
 ## Running the Application
 
-Make sure PostgreSQL is running, then:
+### Development (local)
+
+Make sure PostgreSQL is running locally on port `5432`, then:
 
 ```bash
 ./mvnw spring-boot:run -Dspring-boot.run.profiles=dev
+```
+
+App will be available at `http://localhost:8080`.
+
+---
+
+### Production (Docker)
+
+The app and database run as Docker containers via `docker-compose.yaml`.
+
+**Requirements:** Docker and Docker Compose installed.
+
+```bash
+docker-compose up --build
+```
+
+This will:
+
+1. Build the app image using the multi-stage `Dockerfile` (Maven build → JRE runtime)
+2. Start a PostgreSQL container and wait for it to be healthy
+3. Start the app container connected to the database
+4. Run Flyway migrations automatically on startup
+
+App will be available at `http://localhost:8080`.
+
+**To stop:**
+
+```bash
+docker-compose down
+```
+
+**To stop and remove the database volume:**
+
+```bash
+docker-compose down -v
+```
+
+**To run only the database** (useful when running the app locally against a dockerised DB):
+
+```bash
+docker-compose up database
 ```
 
 ---
