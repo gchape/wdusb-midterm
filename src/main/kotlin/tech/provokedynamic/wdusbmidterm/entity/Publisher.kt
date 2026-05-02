@@ -1,20 +1,32 @@
 package tech.provokedynamic.wdusbmidterm.entity
-        
-@jakarta.persistence.Entity
-@jakarta.persistence.Table(name = "publishers", schema = "public")
-open class Publisher {
-@jakarta.persistence.Id
-@jakarta.persistence.GeneratedValue(strategy = jakarta.persistence.GenerationType.SEQUENCE, generator = "publishers_id_gen")
-@jakarta.persistence.SequenceGenerator(name = "publishers_id_gen", sequenceName = "publishers_id_seq", allocationSize = 1)
-@jakarta.persistence.Column(name = "id", nullable = false)
-open var id: Int = 0
-@jakarta.validation.constraints.Size(max = 255)
-@jakarta.validation.constraints.NotNull
-@jakarta.persistence.Column(name = "name", nullable = false)
-open var name: String = ""
-@jakarta.validation.constraints.NotNull
-@org.hibernate.annotations.ColumnDefault("CURRENT_TIMESTAMP")
-@jakarta.persistence.Column(name = "created_at", nullable = false)
-open var createdAt: java.time.Instant = java.time.Instant.now()
 
+import jakarta.persistence.*
+import jakarta.validation.constraints.NotNull
+import jakarta.validation.constraints.Size
+import org.hibernate.annotations.SourceType
+import java.time.Instant
+
+@Entity
+@Table(name = "publishers", schema = "public")
+open class Publisher(
+    @NotNull
+    @Size(max = 255)
+    @Column(name = "name")
+    var name: String
+) {
+    @Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "publishers_id_gen")
+    @SequenceGenerator(name = "publishers_id_gen", sequenceName = "publishers_id_seq", allocationSize = 1)
+    @Column(name = "id")
+    var id: Long = 0
+        protected set
+
+    @NotNull
+    @Column(name = "created_at", insertable = false, updatable = false)
+    @org.hibernate.annotations.CreationTimestamp(source = SourceType.DB)
+    var createdAt: Instant = Instant.now()
+        protected set
+
+    @Column(name = "deleted_at")
+    var deletedAt: Instant? = null
 }
