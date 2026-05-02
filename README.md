@@ -231,7 +231,7 @@ docker-compose up database
 - [ ] User authentication with Spring Security
 - [ ] Input validation with `@Valid` and proper error responses
 - [ ] Global exception handler with `@ControllerAdvice`
-- [ ] Swagger / OpenAPI documentation
+- [X] Swagger / OpenAPI documentation
 - [ ] Pagination controls on the home page recent section
 - [ ] Book cover image upload
 - [ ] Advanced filtering — by date range, page count, multiple genres

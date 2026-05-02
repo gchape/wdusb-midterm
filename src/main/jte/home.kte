@@ -9,7 +9,7 @@
             love, and share your reading journey.</p>
         <div class="actions">
             <a href="/books" class="hero-browse-btn">Browse Library</a>
-            <a href="/books/form" class="hero-add-btn">Add a Book</a>
+            <a href="/books?form" class="hero-add-btn">Add a Book</a>
         </div>
     </section>
 

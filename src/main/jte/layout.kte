@@ -15,7 +15,7 @@
     <a href="/" class="logo">Bibliotheca</a>
     <div class="nav-links">
         <a href="/books">Library</a>
-        <a href="/books/form" class="nav-add-btn">+ Add Book</a>
+        <a href="/books?form" class="nav-add-btn">+ Add Book</a>
     </div>
 </nav>
 

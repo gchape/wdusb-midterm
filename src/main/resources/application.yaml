@@ -12,6 +12,14 @@ spring:
   jpa:
     open-in-view: false
 
+app:
+  api:
+    base-url: http://localhost:8080
+
+springdoc:
+  packages-to-scan: tech.provokedynamic.wdusbmidterm.controller
+  paths-to-match: /api/**
+
 gg:
   jte:
     template-location: src/main/jte
