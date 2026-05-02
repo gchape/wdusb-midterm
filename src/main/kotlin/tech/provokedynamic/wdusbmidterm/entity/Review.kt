@@ -1,22 +1,38 @@
 package tech.provokedynamic.wdusbmidterm.entity
-        
-@jakarta.persistence.Entity
-@jakarta.persistence.Table(name = "reviews")
-open class Review {
-@jakarta.persistence.Id
-@jakarta.persistence.GeneratedValue(strategy = jakarta.persistence.GenerationType.IDENTITY)
-@jakarta.persistence.Column(name = "id", nullable = false)
-open var id: Int = 0
-@jakarta.validation.constraints.NotNull
-@jakarta.persistence.ManyToOne(fetch = jakarta.persistence.FetchType.LAZY, optional = false)
-@jakarta.persistence.JoinColumn(name = "book_id", nullable = false)
-open var book: tech.provokedynamic.wdusbmidterm.entity.Book? = null
-@jakarta.persistence.Column(name = "rating")
-open var rating: Short? = null
-@jakarta.persistence.Column(name = "body", length = Integer.MAX_VALUE)
-open var body: String? = null
-@org.hibernate.annotations.ColumnDefault("now()")
-@jakarta.persistence.Column(name = "created_at")
-open var createdAt: java.time.Instant? = null
 
+import jakarta.persistence.*
+import org.hibernate.annotations.SourceType
+import org.jetbrains.annotations.NotNull
+import java.time.Instant
+
+@Entity
+@Table(name = "reviews")
+open class Review(
+    @NotNull
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "book_id")
+    var book: Book,
+
+    @NotNull
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "user_id")
+    var user: User,
+
+    @NotNull
+    @Column(name = "rating")
+    var rating: Short,
+) {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
+    var id: Int = 0
+        protected set
+
+    @Column(name = "body", length = Integer.MAX_VALUE)
+    var body: String? = null
+
+    @Column(name = "created_at", nullable = false, insertable = false, updatable = false)
+    @org.hibernate.annotations.CreationTimestamp(source = SourceType.DB)
+    var createdAt: Instant? = null
+        protected set
 }

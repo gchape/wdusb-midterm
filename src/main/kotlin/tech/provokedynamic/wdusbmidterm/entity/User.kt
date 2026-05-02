@@ -1,15 +1,20 @@
 package tech.provokedynamic.wdusbmidterm.entity
-        
-@jakarta.persistence.Entity
-@jakarta.persistence.Table(name = "users")
-open class User {
-@jakarta.persistence.Id
-@jakarta.persistence.GeneratedValue(strategy = jakarta.persistence.GenerationType.IDENTITY)
-@jakarta.persistence.Column(name = "id", nullable = false)
-open var id: Int = 0
-@jakarta.validation.constraints.Size(max = 255)
-@jakarta.validation.constraints.NotNull
-@jakarta.persistence.Column(name = "username", nullable = false)
-open var username: String = ""
 
+import jakarta.persistence.*
+import jakarta.validation.constraints.NotNull
+import jakarta.validation.constraints.Size
+
+@Entity
+@Table(name = "users")
+open class User(
+    @NotNull
+    @Size(max = 255)
+    @Column(name = "username")
+    var username: String
+) {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id", nullable = false)
+    var id: Int = 0
+        protected set
 }

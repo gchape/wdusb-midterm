@@ -1,36 +1,59 @@
 package tech.provokedynamic.wdusbmidterm.entity
-        
-@jakarta.persistence.Entity
-@jakarta.persistence.Table(name = "authors")
-open class Author {
-@jakarta.persistence.Id
-@jakarta.persistence.GeneratedValue(strategy = jakarta.persistence.GenerationType.IDENTITY)
-@jakarta.persistence.Column(name = "id", nullable = false)
-open var id: Int = 0
-@jakarta.validation.constraints.Size(max = 50)
-@jakarta.validation.constraints.NotNull
-@jakarta.persistence.Column(name = "firstname", nullable = false, length = 50)
-open var firstname: String = ""
-@jakarta.validation.constraints.Size(max = 60)
-@jakarta.validation.constraints.NotNull
-@jakarta.persistence.Column(name = "lastname", nullable = false, length = 60)
-open var lastname: String = ""
-@jakarta.validation.constraints.Size(max = 255)
-@jakarta.validation.constraints.NotNull
-@jakarta.persistence.Column(name = "email", nullable = false)
-open var email: String = ""
-@jakarta.persistence.Column(name = "dob")
-open var dob: java.time.LocalDate? = null
-@jakarta.persistence.Column(name = "bio", length = Integer.MAX_VALUE)
-open var bio: String? = null
-@org.hibernate.annotations.ColumnDefault("now()")
-@jakarta.persistence.Column(name = "created_at")
-open var createdAt: java.time.Instant? = null
-@org.hibernate.annotations.ColumnDefault("now()")
-@jakarta.persistence.Column(name = "updated_at")
-open var updatedAt: java.time.Instant? = null
-@org.hibernate.annotations.ColumnDefault("false")
-@jakarta.persistence.Column(name = "deleted")
-open var deleted: Boolean? = null
 
+import jakarta.persistence.*
+import jakarta.validation.constraints.NotNull
+import jakarta.validation.constraints.Size
+import org.hibernate.annotations.SourceType
+import org.hibernate.generator.EventType
+import java.time.Instant
+import java.time.LocalDate
+
+@Entity
+@Table(name = "authors")
+open class Author(
+    @NotNull
+    @Size(max = 50)
+    @Column(name = "firstname", length = 50)
+    var firstname: String,
+
+    @NotNull
+    @Size(max = 60)
+    @Column(name = "lastname", length = 60)
+    var lastname: String,
+
+    @NotNull
+    @Size(max = 255)
+    @Column(name = "email", unique = true)
+    var email: String,
+
+    @NotNull
+    @Column(name = "dob")
+    var dob: LocalDate
+) {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
+    var id: Int = 0
+        protected set
+
+    @ManyToMany(mappedBy = "authors", fetch = FetchType.LAZY)
+    var books: MutableSet<Book> = mutableSetOf()
+
+    @Column(name = "bio", length = Integer.MAX_VALUE)
+    var bio: String? = null
+
+    @Column(name = "created_at", nullable = false, insertable = false, updatable = false)
+    @org.hibernate.annotations.CreationTimestamp(source = SourceType.DB)
+    var createdAt: Instant? = null
+        protected set
+
+    @Column(name = "updated_at", nullable = false, insertable = false, updatable = false)
+    @org.hibernate.annotations.UpdateTimestamp(source = SourceType.DB)
+    var updatedAt: Instant? = null
+        protected set
+
+    @NotNull
+    @Column(name = "deleted")
+    @org.hibernate.annotations.Generated(event = [EventType.INSERT])
+    var deleted: Boolean = false
 }
