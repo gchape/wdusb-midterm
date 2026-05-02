@@ -1,0 +1,86 @@
+@import tech.provokedynamic.wdusbmidterm.model.dto.AuthorResponseDTO
+@import tech.provokedynamic.wdusbmidterm.model.dto.BookResponseDTO
+
+@param author: AuthorResponseDTO
+@param books: List<BookResponseDTO>
+
+@template.layout(title = "${author.firstName} ${author.lastName}", activeNav = "authors", content = @`
+
+    <div class="container page-container">
+
+        <nav class="breadcrumb" aria-label="Breadcrumb">
+            <a href="/" class="breadcrumb-link">Home</a>
+            <span class="breadcrumb-sep">›</span>
+            <a href="/authors" class="breadcrumb-link">Authors</a>
+            <span class="breadcrumb-sep">›</span>
+            <span class="breadcrumb-current">${author.firstName} ${author.lastName}</span>
+        </nav>
+
+        <div class="author-detail-layout">
+
+            <!-- ── Sidebar ── -->
+            <aside class="author-detail-sidebar">
+                <div class="author-detail-avatar author-avatar-color-${(author.id % 6) + 1}">
+                    ${author.firstName.substring(0, 1).uppercase()}${author.lastName.substring(0, 1).uppercase()}
+                </div>
+                <div class="author-stat-pill">${books.size} book${if(books.size != 1) "s" else ""}</div>
+                <div class="author-detail-actions">
+                    <a href="/authors/${author.id}/edit" class="btn btn--outline btn--full">Edit Author</a>
+                    <form action="/authors/${author.id}/delete" method="POST"
+                          onsubmit="return confirm('Delete ${author.firstName} ${author.lastName}? This cannot be undone.')">
+                        <button type="submit" class="btn btn--danger btn--full">Delete Author</button>
+                    </form>
+                    <a href="/authors" class="btn btn--ghost btn--full">All Authors</a>
+                </div>
+            </aside>
+
+            <!-- ── Content ── -->
+            <div class="author-detail-content">
+                <h1 class="detail-title">${author.firstName} ${author.lastName}</h1>
+
+                @if(author.bio != null)
+                    <div class="detail-description">
+                        <h2 class="detail-section-label">Biography</h2>
+                        <p>${author.bio}</p>
+                    </div>
+                @else
+                    <div class="detail-description">
+                        <p class="text-muted">No biography available for this author.</p>
+                    </div>
+                @endif
+
+                <div class="author-books-section">
+                    <h2 class="detail-section-label">Books (${books.size})</h2>
+
+                    @if(books.isEmpty())
+                        <div class="empty-state">
+                            <span class="empty-icon">📚</span>
+                            <p>No books registered yet. <a href="/books/new">Add a book</a> to this author.</p>
+                        </div>
+                    @else
+                        <div class="author-books-list">
+                            @for(book in books)
+                                <a href="/books/${book.id}" class="author-book-item">
+                                    <div class="author-book-cover book-cover-color-${(book.id % 8) + 1}">
+                                        ${book.title.substring(0, 1).uppercase()}
+                                    </div>
+                                    <div class="author-book-info">
+                                        <span class="author-book-title">${book.title}</span>
+                                        <span class="author-book-year">${book.publicationDate.toString()}</span>
+                                    </div>
+                                    @if(book.genres != null && !book.genres.isEmpty())
+                                        <div class="author-book-tags">
+                                            @for(genre in book.genres)
+                                                <span class="tag tag--sm">${genre.name}</span>
+                                            @endfor
+                                        </div>
+                                    @endif
+                                </a>
+                            @endfor
+                        </div>
+                    @endif
+                </div>
+            </div>
+        </div>
+    </div>
+`)

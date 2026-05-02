@@ -1,6 +1,9 @@
 @import gg.jte.Content
 
 @param title: String = "Library Application"
+@param activeNav: String = ""
+@param flashSuccess: String? = null
+@param flashError: String? = null
 @param content: Content
 
 <!DOCTYPE html>
@@ -8,32 +11,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>${title}</title>
+    <title>${title} — LibSys</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/style.css">
 </head>
 <body>
+
 <header class="site-header">
     <div class="container header-inner">
         <a href="/" class="logo">
             <span class="logo-icon">📚</span>
             <span class="logo-text">LibSys</span>
         </a>
-        <nav class="main-nav">
-            <a href="/books" class="nav-link">Books</a>
-            <a href="/authors" class="nav-link">Authors</a>
+        <nav class="main-nav" aria-label="Main navigation">
+            <a href="/" class="nav-link ${if(activeNav == "home") "nav-link--active" else ""}">Home</a>
+            <a href="/books" class="nav-link ${if(activeNav == "books") "nav-link--active" else ""}">Books</a>
+            <a href="/authors" class="nav-link ${if(activeNav == "authors") "nav-link--active" else ""}">Authors</a>
         </nav>
     </div>
 </header>
 
 <main class="main-content">
+    @if(flashSuccess != null)
+        <div class="flash-bar flash-bar--success" role="alert">
+            <span class="flash-icon">✓</span> ${flashSuccess}
+        </div>
+    @endif
+    @if(flashError != null)
+        <div class="flash-bar flash-bar--error" role="alert">
+            <span class="flash-icon">✕</span> ${flashError}
+        </div>
+    @endif
+
     ${content}
 </main>
 
 <footer class="site-footer">
     <div class="container footer-inner">
-        <div class="footer-brand">LibSys © 2026</div>
-        <div class="footer-copy">Built with Spring Boot & KTE</div>
+        <span class="footer-brand">📚 LibSys</span>
+        <span class="footer-copy">Built with Spring Boot &amp; Kotlin · © 2026</span>
     </div>
 </footer>
+
 </body>
 </html>

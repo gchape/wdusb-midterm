@@ -1,0 +1,90 @@
+@import tech.provokedynamic.wdusbmidterm.model.dto.AuthorResponseDTO
+
+@param author: AuthorResponseDTO? = null
+@param errors: Map<String, String> = emptyMap()
+
+!{val isEdit = author != null}
+!{val actionUrl = if (isEdit) "/authors/${author?.id}/edit" else "/authors/add"}
+!{val pageTitle = if (isEdit) "Edit Author" else "Add New Author"}
+
+@template.layout(title = pageTitle, activeNav = "authors", content = @`
+
+    <div class="container page-container">
+
+        <nav class="breadcrumb" aria-label="Breadcrumb">
+            <a href="/" class="breadcrumb-link">Home</a>
+            <span class="breadcrumb-sep">›</span>
+            <a href="/authors" class="breadcrumb-link">Authors</a>
+            <span class="breadcrumb-sep">›</span>
+            @if(isEdit)
+                <a href="/authors/${author?.id}" class="breadcrumb-link">${author?.firstName} ${author?.lastName}</a>
+                <span class="breadcrumb-sep">›</span>
+                <span class="breadcrumb-current">Edit</span>
+            @else
+                <span class="breadcrumb-current">New Author</span>
+            @endif
+        </nav>
+
+        <div class="form-page">
+            <div class="form-page-header">
+                <h1 class="page-title">${pageTitle}</h1>
+                @if(isEdit)
+                    <a href="/authors/${author?.id}" class="btn btn--ghost btn--sm">Cancel</a>
+                @else
+                    <a href="/authors" class="btn btn--ghost btn--sm">Cancel</a>
+                @endif
+            </div>
+
+            <div class="card form-card">
+                <form action="${actionUrl}" method="POST" novalidate>
+                    <div class="form-grid">
+
+                        <!-- First Name -->
+                        <div class="form-group ${if(errors.containsKey("firstName")) "form-group--error" else ""}">
+                            <label class="form-label" for="firstName">First Name <span class="required">*</span></label>
+                            <input type="text" id="firstName" name="firstName" class="input"
+                                   value="${author?.firstName ?: ""}" required placeholder="Jane">
+                            @if(errors.containsKey("firstName"))
+                                <span class="field-error">${errors["firstName"]}</span>
+                            @endif
+                        </div>
+
+                        <!-- Last Name -->
+                        <div class="form-group ${if(errors.containsKey("lastName")) "form-group--error" else ""}">
+                            <label class="form-label" for="lastName">Last Name <span class="required">*</span></label>
+                            <input type="text" id="lastName" name="lastName" class="input"
+                                   value="${author?.lastName ?: ""}" required placeholder="Austen">
+                            @if(errors.containsKey("lastName"))
+                                <span class="field-error">${errors["lastName"]}</span>
+                            @endif
+                        </div>
+
+                        <!-- Bio -->
+                        <div class="form-group form-group--wide ${if(errors.containsKey("bio")) "form-group--error" else ""}">
+                            <label class="form-label" for="bio">Biography</label>
+                            <textarea id="bio" name="bio" class="input textarea" rows="5"
+                                      placeholder="A few sentences about the author…">${author?.bio ?: ""}</textarea>
+                            @if(errors.containsKey("bio"))
+                                <span class="field-error">${errors["bio"]}</span>
+                            @endif
+                        </div>
+
+                    </div><!-- /.form-grid -->
+
+                    <div class="form-footer">
+                        <button type="submit" class="btn btn--primary">
+                            ${if(isEdit) "Save Changes" else "Add Author"}
+                        </button>
+                    </div>
+                </form>
+
+                @if(isEdit)
+                    <form action="/authors/${author?.id}/delete" method="POST" class="inline-form"
+                          onsubmit="return confirm('Delete this author? This cannot be undone.')">
+                        <button type="submit" class="btn btn--danger">Delete Author</button>
+                    </form>
+                @endif
+            </div>
+        </div>
+    </div>
+`)

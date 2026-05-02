@@ -1,0 +1,169 @@
+@import tech.provokedynamic.wdusbmidterm.model.dto.BookResponseDTO
+@import tech.provokedynamic.wdusbmidterm.model.dto.PublisherResponseDTO
+@import tech.provokedynamic.wdusbmidterm.model.dto.AuthorResponseDTO
+@import tech.provokedynamic.wdusbmidterm.model.dto.GenreResponseDTO
+
+@param book: BookResponseDTO? = null
+@param publishers: List<PublisherResponseDTO>
+@param authors: List<AuthorResponseDTO>
+@param genres: List<GenreResponseDTO>
+@param errors: Map<String, String> = emptyMap()
+
+!{val isEdit = book != null}
+!{val actionUrl = if (isEdit) "/books/${book?.id}/edit" else "/books/new"}
+!{val pageTitle = if (isEdit) "Edit Book" else "Add New Book"}
+
+@template.layout(title = pageTitle, activeNav = "books", content = @`
+
+    <div class="container page-container">
+
+        <nav class="breadcrumb" aria-label="Breadcrumb">
+            <a href="/" class="breadcrumb-link">Home</a>
+            <span class="breadcrumb-sep">›</span>
+            <a href="/books" class="breadcrumb-link">Books</a>
+            <span class="breadcrumb-sep">›</span>
+            @if(isEdit)
+                <a href="/books/${book?.id}" class="breadcrumb-link">${book?.title}</a>
+                <span class="breadcrumb-sep">›</span>
+                <span class="breadcrumb-current">Edit</span>
+            @else
+                <span class="breadcrumb-current">New Book</span>
+            @endif
+        </nav>
+
+        <div class="form-page">
+            <div class="form-page-header">
+                <h1 class="page-title">${pageTitle}</h1>
+                @if(isEdit)
+                    <a href="/books/${book?.id}" class="btn btn--ghost btn--sm">Cancel</a>
+                @else
+                    <a href="/books" class="btn btn--ghost btn--sm">Cancel</a>
+                @endif
+            </div>
+
+            <div class="card form-card">
+                <form action="${actionUrl}" method="POST" novalidate>
+                    <div class="form-grid">
+
+                        <!-- Title -->
+                        <div class="form-group form-group--wide ${if(errors.containsKey("title")) "form-group--error" else ""}">
+                            <label class="form-label" for="title">Title <span class="required">*</span></label>
+                            <input type="text" id="title" name="title" class="input"
+                                   value="${book?.title ?: ""}" required placeholder="Enter book title">
+                            @if(errors.containsKey("title"))
+                                <span class="field-error">${errors["title"]}</span>
+                            @endif
+                        </div>
+
+                        <!-- ISBN -->
+                        <div class="form-group ${if(errors.containsKey("isbn")) "form-group--error" else ""}">
+                            <label class="form-label" for="isbn">ISBN <span class="required">*</span></label>
+                            <input type="text" id="isbn" name="isbn" class="input"
+                                   value="${book?.isbn ?: ""}" required placeholder="978-…">
+                            @if(errors.containsKey("isbn"))
+                                <span class="field-error">${errors["isbn"]}</span>
+                            @endif
+                        </div>
+
+                        <!-- Page Count -->
+                        <div class="form-group ${if(errors.containsKey("pageCount")) "form-group--error" else ""}">
+                            <label class="form-label" for="pageCount">Page Count <span class="required">*</span></label>
+                            <input type="number" id="pageCount" name="pageCount" class="input"
+                                   value="${book?.pageCount?.toString() ?: ""}" required min="1" placeholder="e.g. 320">
+                            @if(errors.containsKey("pageCount"))
+                                <span class="field-error">${errors["pageCount"]}</span>
+                            @endif
+                        </div>
+
+                        <!-- Publication Date -->
+                        <div class="form-group ${if(errors.containsKey("publicationDate")) "form-group--error" else ""}">
+                            <label class="form-label" for="publicationDate">Publication Date <span
+                                        class="required">*</span></label>
+                            <input type="date" id="publicationDate" name="publicationDate" class="input"
+                                   value="${book?.publicationDate?.toString() ?: ""}" required>
+                            @if(errors.containsKey("publicationDate"))
+                                <span class="field-error">${errors["publicationDate"]}</span>
+                            @endif
+                        </div>
+
+                        <!-- Publisher -->
+                        <div class="form-group ${if(errors.containsKey("publisherId")) "form-group--error" else ""}">
+                            <label class="form-label" for="publisherId">Publisher <span
+                                        class="required">*</span></label>
+                            <select id="publisherId" name="publisherId" class="input select-input" required>
+                                @if(book?.publisher == null)
+                                    <option value="" disabled selected>Select publisher…</option>
+                                @else
+                                    <option value="" disabled>Select publisher…</option>
+                                @endif
+                                @for(pub in publishers)
+                                    @if(book?.publisher?.id == pub.id)
+                                        <option value="${pub.id}" selected>${pub.name}</option>
+                                    @else
+                                        <option value="${pub.id}">${pub.name}</option>
+                                    @endif
+                                @endfor
+                            </select>
+                            @if(errors.containsKey("publisherId"))
+                                <span class="field-error">${errors["publisherId"]}</span>
+                            @endif
+                        </div>
+
+                        <!-- Authors (multi-select) -->
+                        <div class="form-group form-group--wide ${if(errors.containsKey("authorIds")) "form-group--error" else ""}">
+                            <label class="form-label" for="authorIds">Authors <span class="required">*</span></label>
+                            <select id="authorIds" name="authorIds" class="input select-input select-multi"
+                                    multiple required>
+                                @for(author in authors)
+                                    @if(book?.authors != null && book.authors.any { it.id == author.id })
+                                        <option value="${author.id}"
+                                                selected>${author.firstName} ${author.lastName}</option>
+                                    @else
+                                        <option value="${author.id}">${author.firstName} ${author.lastName}</option>
+                                    @endif
+                                @endfor
+                            </select>
+                            <span class="field-hint">Hold Ctrl / ⌘ to select multiple authors.</span>
+                            @if(errors.containsKey("authorIds"))
+                                <span class="field-error">${errors["authorIds"]}</span>
+                            @endif
+                        </div>
+
+                        <!-- Genres (multi-select) -->
+                        <div class="form-group form-group--wide ${if(errors.containsKey("genreIds")) "form-group--error" else ""}">
+                            <label class="form-label" for="genreIds">Genres <span class="required">*</span></label>
+                            <select id="genreIds" name="genreIds" class="input select-input select-multi"
+                                    multiple required>
+                                @for(genre in genres)
+                                    @if(book?.genres != null && book.genres.any { it.id == genre.id })
+                                        <option value="${genre.id}" selected>${genre.name}</option>
+                                    @else
+                                        <option value="${genre.id}">${genre.name}</option>
+                                    @endif
+                                @endfor
+                            </select>
+                            <span class="field-hint">Hold Ctrl / ⌘ to select multiple genres.</span>
+                            @if(errors.containsKey("genreIds"))
+                                <span class="field-error">${errors["genreIds"]}</span>
+                            @endif
+                        </div>
+
+                    </div><!-- /.form-grid -->
+
+                    <div class="form-footer">
+                        <button type="submit" class="btn btn--primary">
+                            ${if(isEdit) "Save Changes" else "Create Book"}
+                        </button>
+                    </div>
+                </form>
+
+                @if(isEdit)
+                    <form action="/books/${book?.id}/delete" method="POST" class="inline-form"
+                          onsubmit="return confirm('Delete this book? This cannot be undone.')">
+                        <button type="submit" class="btn btn--danger">Delete Book</button>
+                    </form>
+                @endif
+            </div>
+        </div>
+    </div>
+`)

@@ -1,0 +1,89 @@
+@import tech.provokedynamic.wdusbmidterm.model.view.BookCatalogViewModel
+
+@param vm: BookCatalogViewModel
+
+@template.layout(title = "Books", activeNav = "books", content = @`
+    <div class="container page-container">
+        <div class="page-header">
+            <div>
+                <h1 class="page-title">Book Catalog</h1>
+                <p class="page-subtitle">${vm.totalCount} books in your collection</p>
+            </div>
+            <a href="/books/new" class="btn btn--primary">＋ Add Book</a>
+        </div>
+
+        <div class="catalog-results">
+            @if(vm.books.isEmpty())
+                <div class="empty-state empty-state--full">
+                    <span class="empty-icon">📚</span>
+                    <h3>No books found</h3>
+                    <p><a href="/books/new">Add a new book</a> to get started.</p>
+                </div>
+            @else
+                <div class="book-list">
+                    @for(book in vm.books)
+                        <article class="book-list-item">
+                            <a href="/books/${book.id}" class="book-list-cover-link">
+                                <div class="book-list-cover book-cover-color-${(book.id % 8) + 1}">
+                                    <span class="book-list-initial">${book.title.substring(0, 1).uppercase()}</span>
+                                </div>
+                            </a>
+                            <div class="book-list-info">
+                                <h3 class="book-list-title">
+                                    <a href="/books/${book.id}">${book.title}</a>
+                                </h3>
+                                <div class="book-list-meta">
+                                    <span class="meta-item">📅 ${book.publicationDate.toString()}</span>
+                                    @if(book.isbn != null)
+                                        <span class="meta-dot">·</span>
+                                        <span class="meta-item">ISBN: ${book.isbn}</span>
+                                    @endif
+                                    @if(book.pageCount != null)
+                                        <span class="meta-dot">·</span>
+                                        <span class="meta-item">${book.pageCount} pages</span>
+                                    @endif
+                                </div>
+                                @if(book.genres != null && !book.genres.isEmpty())
+                                    <div class="book-list-tags">
+                                        @for(genre in book.genres)
+                                            <span class="tag">${genre.name}</span>
+                                        @endfor
+                                    </div>
+                                @endif
+                            </div>
+                            <div class="book-list-actions">
+                                <a href="/books/${book.id}/edit" class="btn btn--outline btn--sm">Edit</a>
+                                <a href="/books/${book.id}" class="btn btn--ghost btn--sm">View</a>
+                            </div>
+                        </article>
+                    @endfor
+                </div>
+
+                @if(vm.totalPages > 1)
+                    <nav class="pagination" aria-label="Pagination">
+                        @if(vm.currentPage > 1)
+                            <a href="/books?page=${vm.currentPage - 1}" class="pagination-btn">← Prev</a>
+                        @else
+                            <span class="pagination-btn pagination-btn--disabled">← Prev</span>
+                        @endif
+
+                        <div class="pagination-pages">
+                            @for(p in 1..vm.totalPages)
+                                <a href="/books?page=${p}"
+                                   class="pagination-page ${if(p == vm.currentPage) "pagination-page--active" else ""}">
+                                    ${p}
+                                </a>
+                            @endfor
+                        </div>
+
+                        @if(vm.currentPage < vm.totalPages)
+                            <a href="/books?page=${vm.currentPage + 1}" class="pagination-btn">Next →</a>
+                        @else
+                            <span class="pagination-btn pagination-btn--disabled">Next →</span>
+                        @endif
+                    </nav>
+                @endif
+            @endif
+        </div>
+    </div>
+`)

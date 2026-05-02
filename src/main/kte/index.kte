@@ -1,0 +1,79 @@
+@import java.util.List
+@import tech.provokedynamic.wdusbmidterm.model.dto.BookResponseDTO
+
+@param recentBooks: List<BookResponseDTO>
+@param totalBooks: Long
+@param totalAuthors: Long
+
+@template.layout(title = "Home", activeNav = "home", content = @`
+    <!-- ── Hero ── -->
+    <section class="hero">
+        <div class="hero-bg"></div>
+        <div class="container hero-content">
+            <span class="hero-badge">Welcome to your library</span>
+            <h1 class="hero-title">
+                Discover, Manage &amp;<br>
+                <span class="hero-title-accent">Love Your Books</span>
+            </h1>
+            <p class="hero-subtitle">
+                Organize your entire collection, browse by author or genre,
+                and keep every book perfectly catalogued.
+            </p>
+            <div class="hero-actions">
+                <a href="/books" class="btn btn--primary btn--lg">Browse Catalog</a>
+                <a href="/authors" class="btn btn--ghost-white btn--lg">Meet Authors</a>
+            </div>
+            <div class="hero-stats">
+                <div class="stat">
+                    <span class="stat-number">${totalBooks}</span>
+                    <span class="stat-label">Books</span>
+                </div>
+                <div class="stat-divider"></div>
+                <div class="stat">
+                    <span class="stat-number">${totalAuthors}</span>
+                    <span class="stat-label">Authors</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ── Recent Books ── -->
+    <section class="section">
+        <div class="container">
+            <div class="section-header">
+                <div>
+                    <h2 class="section-title">Recently Added</h2>
+                    <p class="section-subtitle">The latest additions to the catalog</p>
+                </div>
+                <a href="/books" class="btn btn--outline">View All</a>
+            </div>
+
+            @if(recentBooks.isEmpty())
+                <div class="empty-state">
+                    <span class="empty-icon">📭</span>
+                    <p>No books yet. <a href="/books/new">Add the first one!</a></p>
+                </div>
+            @else
+                <div class="book-grid">
+                    @for(book in recentBooks)
+                        <article class="book-card">
+                            <a href="/books/${book.id}" class="book-card-cover-link">
+                                <div class="book-card-cover book-cover-color-${(book.id % 8) + 1}">
+                                    <span class="book-card-initial">${book.title.substring(0, 1).uppercase()}</span>
+                                </div>
+                            </a>
+                            <div class="book-card-body">
+                                <h3 class="book-card-title">
+                                    <a href="/books/${book.id}">${book.title}</a>
+                                </h3>
+                                <div class="book-card-meta">
+                                    <span class="book-card-year">${book.publicationDate.toString()}</span>
+                                </div>
+                            </div>
+                        </article>
+                    @endfor
+                </div>
+            @endif
+        </div>
+    </section>
+`)

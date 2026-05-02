@@ -1,0 +1,78 @@
+@import tech.provokedynamic.wdusbmidterm.model.dto.BookResponseDTO
+
+@param book: BookResponseDTO
+
+@template.layout(title = book.title, activeNav = "books", content = @`
+    <div class="container page-container">
+        <nav class="breadcrumb" aria-label="Breadcrumb">
+            <a href="/" class="breadcrumb-link">Home</a>
+            <span class="breadcrumb-sep">›</span>
+            <a href="/books" class="breadcrumb-link">Books</a>
+            <span class="breadcrumb-sep">›</span>
+            <span class="breadcrumb-current">${book.title}</span>
+        </nav>
+
+        <div class="detail-layout">
+            <!-- Cover -->
+            <div class="detail-cover book-cover-color-${(book.id % 8) + 1}">
+                <span class="detail-cover-initial">${book.title.substring(0, 1).uppercase()}</span>
+            </div>
+
+            <!-- Info -->
+            <div class="detail-info">
+                <!-- Genre tags -->
+                @if(book.genres != null && !book.genres.isEmpty())
+                    <div class="detail-meta-top">
+                        @for(genre in book.genres)
+                            <span class="tag">${genre.name}</span>
+                        @endfor
+                    </div>
+                @endif
+
+                <h1 class="detail-title">${book.title}</h1>
+
+                @if(book.authors != null && !book.authors.isEmpty())
+                    <p class="detail-author">
+                        by
+                        @for(author in book.authors)
+                            <a href="/authors/${author.id}"
+                               class="detail-author-link">${author.firstName} ${author.lastName}</a>
+                        @endfor
+                    </p>
+                @endif
+
+                <!-- Attributes -->
+                <div class="detail-attrs">
+                    <div class="attr">
+                        <span class="attr-label">Published</span>
+                        <span class="attr-value">${book.publicationDate.toString()}</span>
+                    </div>
+                    <div class="attr">
+                        <span class="attr-label">ISBN</span>
+                        <span class="attr-value">${book.isbn}</span>
+                    </div>
+                    <div class="attr">
+                        <span class="attr-label">Pages</span>
+                        <span class="attr-value">${book.pageCount.toString()}</span>
+                    </div>
+                    @if(book.publisher != null)
+                        <div class="attr">
+                            <span class="attr-label">Publisher</span>
+                            <span class="attr-value">${book.publisher?.name}</span>
+                        </div>
+                    @endif
+                </div>
+
+                <!-- Actions -->
+                <div class="detail-actions">
+                    <a href="/books/${book.id}/edit" class="btn btn--primary">Edit Book</a>
+                    <form action="/books/${book.id}/delete" method="POST" class="inline-form"
+                          onsubmit="return confirm('Delete \'${book.title}\'? This cannot be undone.')">
+                        <button type="submit" class="btn btn--danger">Delete</button>
+                    </form>
+                    <a href="/books" class="btn btn--ghost">Back to Catalog</a>
+                </div>
+            </div>
+        </div>
+    </div>
+`)

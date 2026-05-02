@@ -22,7 +22,7 @@ springdoc:
 
 gg:
   jte:
-    template-location: src/main/jte
+    template-location: src/main/kte
     template-suffix: .kte
 
 ---
@@ -45,6 +45,7 @@ spring:
 gg:
   jte:
     development-mode: true
+    expose-request-attributes: true
 
 ---
 
