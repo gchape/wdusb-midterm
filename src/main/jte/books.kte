@@ -1,32 +1,17 @@
 @import org.springframework.data.domain.Page
 @import tech.provokedynamic.wdusbmidterm.model.dto.BookResponseDto
+
 @param books: Page<BookResponseDto>
-@param genre: String
-@param query: String
-<!doctype html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bibliotheca — All Books</title>
-    <link rel="stylesheet" href="/style.css">
-</head>
-<body>
+@param genre: String?
+@param query: String?
 
-<nav>
-    <a href="/" class="logo">Bibliotheca</a>
-    <div class="nav-links">
-        <a href="/books">Library</a>
-        <a href="/books/new" class="nav-add-btn">+ Add Book</a>
-    </div>
-</nav>
-
-<main>
+@template.layout(title = "All Books", content = @`
     <section class="search-section">
         <h2>Browse Library</h2>
         <form action="/books" method="get" class="search-form">
-            <input type="text" name="query" value="${query}" placeholder="Search title, ISBN, genre...">
-            <input type="text" name="genre" value="${genre}" placeholder="Filter by genre...">
+            <label>
+                <input type="text" name="query" value="${query ?: ""}" placeholder="Search title, ISBN, genre...">
+            </label>
             <button type="submit" class="search-btn">Search</button>
             <a href="/books" class="search-clear-btn">Clear</a>
         </form>
@@ -66,20 +51,13 @@
 
     <section class="pagination">
         @if(books.hasPrevious())
-            <a href="/books?page=${books.number - 1}&pageSize=${books.size}&query=${query}&genre=${genre}"
+            <a href="/books?page=${books.number - 1}&pageSize=${books.size}${query?.let { "&query=$it" } ?: ""}${genre?.let { "&genre=$it" } ?: ""}"
                class="pagination-prev-btn">← Previous</a>
         @endif
         <span class="pagination-info">Page ${books.number + 1} of ${books.totalPages}</span>
         @if(books.hasNext())
-            <a href="/books?page=${books.number + 1}&pageSize=${books.size}&query=${query}&genre=${genre}"
+            <a href="/books?page=${books.number + 1}&pageSize=${books.size}${query?.let { "&query=$it" } ?: ""}${genre?.let { "&genre=$it" } ?: ""}"
                class="pagination-next-btn">Next →</a>
         @endif
     </section>
-</main>
-
-<footer>
-    <p>Bibliotheca Book Library System &mdash; Built with KTE &amp; Kotlin</p>
-</footer>
-
-</body>
-</html>
+`)

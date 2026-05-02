@@ -1,25 +1,9 @@
 @import tech.provokedynamic.wdusbmidterm.model.dto.AuthorResponseDto
+
 @param authors: List<AuthorResponseDto>
 @param error: String?
-<!doctype html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bibliotheca — Add a Book</title>
-    <link rel="stylesheet" href="/style.css">
-</head>
-<body>
 
-<nav>
-    <a href="/" class="logo">Bibliotheca</a>
-    <div class="nav-links">
-        <a href="/books">Library</a>
-        <a href="/books/new" class="nav-add-btn">+ Add Book</a>
-    </div>
-</nav>
-
-<main>
+@template.layout(title = "Add a Book", content = @`
     <section class="form-section">
         <h2>Add a New Book</h2>
 
@@ -27,35 +11,35 @@
             <div class="form-error">${error}</div>
         @endif
 
-        <form action="/books/new" method="post" class="book-form">
+        <form action="/books/form" method="post" class="book-form">
             <label>
-                Title
+                <span>Title</span>
                 <input type="text" name="title" required placeholder="e.g. The Great Gatsby">
             </label>
             <label>
-                ISBN
+                <span>ISBN</span>
                 <input type="text" name="isbn" required placeholder="e.g. 9780743273565">
             </label>
             <label>
-                Genre
+                <span>Genre</span>
                 <input type="text" name="genre" placeholder="e.g. Classic, Fantasy, Horror...">
             </label>
             <label>
-                Page Count
+                <span>Page Count</span>
                 <input type="number" name="pageCount" min="1" placeholder="e.g. 320">
             </label>
             <label>
-                Published Date
+                <span>Published Date</span>
                 <input type="date" name="publishedAt">
             </label>
             <label>
-                Authors
+                <span>Authors</span>
                 <select name="authorIds" multiple>
                     @for(author in authors)
                         <option value="${author.id}">${author.firstname} ${author.lastname}</option>
                     @endfor
                 </select>
-                <small class="field-hint">Hold Ctrl / Cmd to select multiple authors</small>
+                <span class="field-hint">Hold Ctrl / Cmd to select multiple authors</span>
             </label>
             <div class="form-actions">
                 <button type="submit" class="form-submit-btn">Add Book</button>
@@ -63,11 +47,4 @@
             </div>
         </form>
     </section>
-</main>
-
-<footer>
-    <p>Bibliotheca Book Library System &mdash; Built with KTE &amp; Kotlin</p>
-</footer>
-
-</body>
-</html>
+`)
