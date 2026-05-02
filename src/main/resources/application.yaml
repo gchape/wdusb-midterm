@@ -14,9 +14,8 @@ spring:
 
 gg:
   jte:
-    development-mode: true
     template-location: src/main/jte
-    template-suffix: .jte
+    template-suffix: .kte
 
 ---
 
@@ -31,9 +30,13 @@ spring:
     driver-class-name: org.postgresql.Driver
     url: jdbc:postgresql://localhost:5432/postgres
 
-logging:
-  level:
-    root: info
+  jpa:
+    properties:
+      hibernate.format_sql: true
+
+gg:
+  jte:
+    development-mode: true
 
 ---
 
@@ -51,7 +54,3 @@ spring:
 gg:
   jte:
     usePrecompiledTemplates: true
-
-logging:
-  level:
-    root: warn
