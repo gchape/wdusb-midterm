@@ -1,4 +1,4 @@
 package tech.provokedynamic.wdusbmidterm.repository
 
-interface BookRepository {
+class GenreRepository {
 }

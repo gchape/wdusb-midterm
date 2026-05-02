@@ -1,4 +1,4 @@
 package tech.provokedynamic.wdusbmidterm.controller
 
-class BookController {
+class HomeController {
 }

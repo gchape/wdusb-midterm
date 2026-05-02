@@ -1,66 +1,37 @@
 package tech.provokedynamic.wdusbmidterm.entity
+        
+@jakarta.persistence.Entity
+@jakarta.persistence.Table(name = "books", schema = "public")
+open class Book {
+@jakarta.persistence.Id
+@jakarta.persistence.GeneratedValue(strategy = jakarta.persistence.GenerationType.SEQUENCE, generator = "books_id_gen")
+@jakarta.persistence.SequenceGenerator(name = "books_id_gen", sequenceName = "books_id_seq", allocationSize = 1)
+@jakarta.persistence.Column(name = "id", nullable = false)
+open var id: Int = 0
+@jakarta.validation.constraints.Size(max = 255)
+@jakarta.validation.constraints.NotNull
+@jakarta.persistence.Column(name = "title", nullable = false)
+open var title: String = ""
+@jakarta.validation.constraints.Size(max = 13)
+@jakarta.persistence.Column(name = "isbn", length = 13)
+open var isbn: String? = null
+@jakarta.persistence.ManyToOne(fetch = jakarta.persistence.FetchType.LAZY)
+@org.hibernate.annotations.OnDelete(action = org.hibernate.annotations.OnDeleteAction.SET_NULL)
+@jakarta.persistence.JoinColumn(name = "publisher_id")
+open var publisher: tech.provokedynamic.wdusbmidterm.entity.Publisher? = null
+@jakarta.persistence.Column(name = "publication_date")
+open var publicationDate: java.time.LocalDate? = null
+@jakarta.persistence.Column(name = "page_count")
+open var pageCount: Int? = null
+@jakarta.validation.constraints.NotNull
+@org.hibernate.annotations.ColumnDefault("CURRENT_TIMESTAMP")
+@jakarta.persistence.Column(name = "created_at", nullable = false)
+open var createdAt: java.time.Instant = java.time.Instant.now()
+@jakarta.validation.constraints.NotNull
+@org.hibernate.annotations.ColumnDefault("CURRENT_TIMESTAMP")
+@jakarta.persistence.Column(name = "updated_at", nullable = false)
+open var updatedAt: java.time.Instant = java.time.Instant.now()
+@jakarta.persistence.Column(name = "deleted_at")
+open var deletedAt: java.time.Instant? = null
 
-import jakarta.persistence.*
-import jakarta.validation.constraints.NotNull
-import jakarta.validation.constraints.Size
-import org.hibernate.annotations.SourceType
-import org.hibernate.generator.EventType
-import java.time.Instant
-import java.time.LocalDate
-
-@Entity
-@Table(name = "books")
-open class Book(
-    @NotNull
-    @Size(max = 255)
-    @Column(name = "title", nullable = false)
-    var title: String,
-
-    @NotNull
-    @Size(max = 20)
-    @Column(name = "isbn", length = 20, unique = true)
-    var isbn: String,
-
-    @NotNull
-    @Column(name = "published_at")
-    var publishedAt: LocalDate,
-
-    @NotNull
-    @Column(name = "page_count")
-    var pageCount: Int
-) {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
-    var id: Int = 0
-        protected set
-
-    @ManyToMany(
-        fetch = FetchType.LAZY,
-    )
-    @JoinTable(
-        name = "authors_books",
-        joinColumns = [JoinColumn(name = "book_id", referencedColumnName = "id")],
-        inverseJoinColumns = [JoinColumn(name = "author_id", referencedColumnName = "id")]
-    )
-    var authors: MutableSet<Author> = mutableSetOf()
-
-    @Size(max = 50)
-    @Column(name = "genre", length = 50)
-    var genre: String? = null
-
-    @Column(name = "created_at", nullable = false, insertable = false, updatable = false)
-    @org.hibernate.annotations.CreationTimestamp(source = SourceType.DB)
-    var createdAt: Instant? = null
-        protected set
-
-    @Column(name = "updated_at", nullable = false, insertable = false, updatable = false)
-    @org.hibernate.annotations.UpdateTimestamp(source = SourceType.DB)
-    var updatedAt: Instant? = null
-        protected set
-
-    @NotNull
-    @Column(name = "deleted")
-    @org.hibernate.annotations.Generated(event = [EventType.INSERT])
-    var deleted: Boolean = false
 }

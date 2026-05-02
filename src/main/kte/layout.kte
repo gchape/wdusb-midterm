@@ -1,0 +1,39 @@
+@import gg.jte.Content
+
+@param title: String = "Library Application"
+@param content: Content
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${title}</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<header class="site-header">
+    <div class="container header-inner">
+        <a href="/" class="logo">
+            <span class="logo-icon">📚</span>
+            <span class="logo-text">LibSys</span>
+        </a>
+        <nav class="main-nav">
+            <a href="/books" class="nav-link">Books</a>
+            <a href="/authors" class="nav-link">Authors</a>
+        </nav>
+    </div>
+</header>
+
+<main class="main-content">
+    ${content}
+</main>
+
+<footer class="site-footer">
+    <div class="container footer-inner">
+        <div class="footer-brand">LibSys © 2026</div>
+        <div class="footer-copy">Built with Spring Boot & KTE</div>
+    </div>
+</footer>
+</body>
+</html>
