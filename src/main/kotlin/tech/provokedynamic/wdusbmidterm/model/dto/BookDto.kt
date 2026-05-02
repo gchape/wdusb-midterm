@@ -1,4 +1,4 @@
-package tech.provokedynamic.wdusbmidterm.model
+package tech.provokedynamic.wdusbmidterm.model.dto
 
 import tech.provokedynamic.wdusbmidterm.entity.Book
 import java.time.LocalDate
@@ -8,7 +8,8 @@ data class BookRequestDto(
     val isbn: String,
     val publishedAt: LocalDate,
     val pageCount: Int,
-    val genre: String? = "Uncategorized",
+    val genre: String? = null,
+    val authorIds: List<Int> = emptyList(),
 )
 
 data class BookResponseDto(
@@ -17,18 +18,16 @@ data class BookResponseDto(
     val isbn: String,
     val genre: String?,
     val pageCount: Int?,
-    val publishedAt: LocalDate?,
-    val authors: List<AuthorResponseDto>
+    val publishedAt: LocalDate,
+    val authors: List<AuthorResponseDto> = emptyList(),
 )
 
-fun Book.toResponseDto(): BookResponseDto {
-    return BookResponseDto(
-        id = this.id,
-        title = this.title,
-        isbn = this.isbn,
-        publishedAt = this.publishedAt,
-        pageCount = this.pageCount,
-        genre = this.genre,
-        authors = this.authors.map { it.toAuthorResponseDto() }
-    )
-}
+fun Book.toResponseDto() = BookResponseDto(
+    id = id,
+    title = title,
+    isbn = isbn,
+    publishedAt = publishedAt,
+    pageCount = pageCount,
+    genre = genre,
+    authors = authors.map { it.toAuthorResponseDto() }
+)
