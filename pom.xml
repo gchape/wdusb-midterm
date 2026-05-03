@@ -131,7 +131,7 @@
                             <goal>generate</goal>
                         </goals>
                         <configuration>
-                            <sourceDirectory>${project.basedir}/src/main/jte</sourceDirectory>
+                            <sourceDirectory>${project.basedir}/src/main/kte</sourceDirectory>
                             <contentType>Html</contentType>
                             <binaryStaticContent>true</binaryStaticContent>
                             <targetResourceDirectory>${project.build.outputDirectory}</targetResourceDirectory>

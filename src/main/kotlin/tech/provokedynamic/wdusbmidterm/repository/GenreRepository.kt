@@ -8,4 +8,6 @@ import tech.provokedynamic.wdusbmidterm.model.projection.GenreResponse
 @Repository
 interface GenreRepository : JpaRepository<Genre, Long> {
     fun findAllByOrderByNameAsc(): List<GenreResponse>
+    fun findGenreById(id: Long): GenreResponse?
+    fun existsByNameIgnoreCase(name: String): Boolean
 }

@@ -9,5 +9,6 @@ import tech.provokedynamic.wdusbmidterm.model.projection.PublisherResponse
 interface PublisherRepository : JpaRepository<Publisher, Long> {
     fun findAllByDeletedAtNullOrderByNameAsc(): List<PublisherResponse>
     fun findByIdAndDeletedAtNull(id: Long): Publisher?
+    fun findPublisherById(id: Long): PublisherResponse?
     fun existsByNameIgnoreCaseAndDeletedAtNull(name: String): Boolean
 }
