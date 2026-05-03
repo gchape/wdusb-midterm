@@ -1,4 +1,4 @@
-FROM maven:3.9.15-eclipse-temurin-25-alpine as build
+FROM maven:3.9.15-eclipse-temurin-25-alpine AS build
 WORKDIR /webapp
 COPY pom.xml .
 COPY src ./src

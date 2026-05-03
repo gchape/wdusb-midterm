@@ -1,13 +1,40 @@
-@param status: Int
-@param message: String?
+@param status: Int = 500
+@param message: String? = null
+@param flashSuccess: String? = null
+@param flashError: String? = null
 
-@template.layout(title = "Error $status", activeNav = "", content = @`
-    <div class="container page-container">
-        <div class="empty-state empty-state--full">
-            <span class="empty-icon">${if(status == 404) "🔍" else if(status == 410) "🗑️" else "⚠️"}</span>
-            <h1 class="page-title">${status}</h1>
-            <p>${message ?: "An unexpected error occurred."}</p>
-            <a href="/" class="btn btn--primary">Go Home</a>
+@template.layout(title = "Error $status", activeNav = "", flashSuccess = flashSuccess, flashError = flashError, content = @`
+    <div class="error-page">
+        <div class="error-content">
+            <span class="error-icon">
+                ${when(status) {
+                    404 -> "🔍"
+                    408 -> "⏱️"
+                    409 -> "⚡"
+                    410 -> "🗑️"
+                    429 -> "🚦"
+                    in 500..599 -> "⚠️"
+                    else -> "❓"
+                }}
+            </span>
+            <h1 class="error-status">${status}</h1>
+            <h2 class="error-title">
+                ${when(status) {
+                    404 -> "Page Not Found"
+                    408 -> "Request Timeout"
+                    409 -> "Conflict"
+                    410 -> "Gone"
+                    429 -> "Too Many Requests"
+                    500 -> "Internal Server Error"
+                    503 -> "Service Unavailable"
+                    else -> "Something Went Wrong"
+                }}
+            </h2>
+            <p class="error-message">${message ?: "An unexpected error occurred. Please try again later."}</p>
+            <div class="error-actions">
+                <a href="/" class="btn btn--primary">Go Home</a>
+                <a href="javascript:history.back()" class="btn btn--ghost">Go Back</a>
+            </div>
         </div>
     </div>
 `)
