@@ -47,7 +47,7 @@ open class Book(
         joinColumns = [JoinColumn(name = "book_id")],
         inverseJoinColumns = [JoinColumn(name = "genre_id")]
     )
-    var genres: MutableList<Genre> = mutableListOf()
+    var genres: MutableSet<Genre> = mutableSetOf()
 
     @ManyToMany(fetch = FetchType.LAZY, cascade = [CascadeType.PERSIST, CascadeType.MERGE])
     @JoinTable(
@@ -55,10 +55,7 @@ open class Book(
         joinColumns = [JoinColumn(name = "book_id")],
         inverseJoinColumns = [JoinColumn(name = "author_id")]
     )
-    var authors: MutableList<Author> = mutableListOf()
-
-    @OneToMany(mappedBy = "book", cascade = [CascadeType.ALL], orphanRemoval = true)
-    var reviews: MutableList<Review> = mutableListOf()
+    var authors: MutableSet<Author> = mutableSetOf()
 
     @NotNull
     @Column(name = "created_at", insertable = false, updatable = false)

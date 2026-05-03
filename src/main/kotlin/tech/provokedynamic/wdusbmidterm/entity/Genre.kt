@@ -20,5 +20,5 @@ open class Genre(
         protected set
 
     @ManyToMany(mappedBy = "genres", fetch = FetchType.LAZY)
-    var books: MutableList<Book> = mutableListOf()
+    var books: MutableSet<Book> = mutableSetOf()
 }

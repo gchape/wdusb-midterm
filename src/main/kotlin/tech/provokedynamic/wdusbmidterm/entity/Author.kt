@@ -30,7 +30,7 @@ open class Author(
     var bio: String? = null
 
     @ManyToMany(mappedBy = "authors", fetch = FetchType.LAZY)
-    var books: MutableList<Book> = mutableListOf()
+    var books: MutableSet<Book> = mutableSetOf()
 
     @NotNull
     @Column(name = "created_at", insertable = false, updatable = false)
