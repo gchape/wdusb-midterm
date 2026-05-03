@@ -4,51 +4,6 @@
     padding: 0;
 }
 
-/* Regular - 400 */
-@font-face {
-    font-family: 'Inter';
-    font-style: normal;
-    font-weight: 400;
-    font-display: swap;
-    src: url('../fonts/Inter_18pt-Regular.ttf') format('truetype');
-}
-
-/* Medium - 500 */
-@font-face {
-    font-family: 'Inter';
-    font-style: normal;
-    font-weight: 500;
-    font-display: swap;
-    src: url('../fonts/Inter_18pt-Medium.ttf') format('truetype');
-}
-
-/* SemiBold - 600 */
-@font-face {
-    font-family: 'Inter';
-    font-style: normal;
-    font-weight: 600;
-    font-display: swap;
-    src: url('../fonts/Inter_18pt-SemiBold.ttf') format('truetype');
-}
-
-/* Bold - 700 */
-@font-face {
-    font-family: 'Inter';
-    font-style: normal;
-    font-weight: 700;
-    font-display: swap;
-    src: url('../fonts/Inter_18pt-Bold.ttf') format('truetype');
-}
-
-/* ExtraBold - 800 */
-@font-face {
-    font-family: 'Inter';
-    font-style: normal;
-    font-weight: 800;
-    font-display: swap;
-    src: url('../fonts/Inter_18pt-ExtraBold.ttf') format('truetype');
-}
-
 :root {
     --color-primary: #1d4ed8; /* deep blue — 7.1:1 on white */
     --color-primary-dark: #1e40af;
@@ -74,7 +29,7 @@
     --container-width: 1200px;
     --header-height: 64px;
 
-    --font-sans: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+    --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
 
     --radius-sm: 6px;
     --radius-md: 10px;

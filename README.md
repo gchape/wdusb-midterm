@@ -230,6 +230,32 @@ migrations automatically.
 - [ ] Book cover image upload
 - [ ] Unit and integration tests with Testcontainers
 
+## Performance & Optimization
+
+### Lighthouse Scores (Home Page)
+
+| Metric         | Score |
+|:---------------|:------|
+| Performance    | 97    |
+| Accessibility  | 100   |
+| Best Practices | 100   |
+| SEO            | 100   |
+
+### Optimizations Applied
+
+- **Removed self-hosted Inter font files** — replaced 5 TTF font variants (~1.3 MiB total) with the native system font
+  stack (`-apple-system`, `BlinkMacSystemFont`, `Segoe UI`, `system-ui`). This eliminated the font loading chain that
+  was causing a 19,000ms LCP element render delay.
+- **Fixed `NoResourceFoundException` handling** — Chrome DevTools probe requests (`/.well-known/appspecific/...`) were
+  being caught by the generic exception handler and returned as 500 errors. Added a dedicated handler that returns 404
+  correctly.
+- **Fixed Spring MVC binding errors on book form** — `pageCount` (`Short`) and `publicationDate` (`LocalDate`) fields
+  threw `NullPointerException` before validation could run when submitted empty. Made these fields nullable in
+  `BookCreateRequest` with `null` defaults so Spring can bind gracefully and `@NotNull` messages display correctly.
+- **Fixed multi-select binding** — `authorIds` and `genreIds` (`List<Long>`) defaulted to `emptyList()` to prevent
+  `NullPointerException` when no options were selected.
+- **Enabled HTTP compression** in `application.yaml` for HTML, CSS, and JS responses.
+
 ## Author
 
 **Giorgi Chapidze**

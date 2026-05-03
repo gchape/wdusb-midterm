@@ -14,7 +14,6 @@
     <meta name="description" content="LibSys — browse and manage your book collection by author, genre, and more.">
     <title>LibSys | ${title}</title>
 
-    <link rel="preload" href="/fonts/Inter_18pt-Regular.ttf" as="font" type="font/ttf" crossorigin="anonymous">
     <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
