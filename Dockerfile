@@ -7,4 +7,4 @@ RUN mvn clean package -DskipTests
 FROM eclipse-temurin:25-jre-alpine
 WORKDIR /webapp
 COPY --from=build /webapp/target/*.jar webapp.jar
-ENTRYPOINT ["java", "-jar", "webapp.jar"]
+ENTRYPOINT ["java", "-XX:+UseContainerSupport", "-XX:MaxRAMPercentage=75.0", "-jar", "webapp.jar"]

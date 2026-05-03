@@ -15,7 +15,7 @@ services:
         condition: service_healthy
 
   database:
-    image: postgres:latest
+    image: postgres:18.3
     hostname: database
     ports:
       - "5432:5432"
