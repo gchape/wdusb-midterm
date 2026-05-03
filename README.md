@@ -1,9 +1,9 @@
-# Bibliotheca — Book Library System
+# LibSys - Book Library System
 
 ## Overview
 
-A Spring Boot application written in Kotlin for managing a book library. Supports browsing, searching, and adding
-books with full author relationships, server-side rendered UI using JTE/KTE templates, and a REST API.
+A Spring Boot application written in Kotlin for managing a book library. Supports browsing and managing books,
+authors, publishers, and genres with server-side rendered UI using JTE/KTE templates.
 
 ---
 
@@ -14,20 +14,27 @@ The application follows a layered architecture:
 ### Controller Layer
 
 - Handles HTTP requests and responses
-- Split into REST controllers (`/api/**`) and view controllers (`/`, `/books/**`)
-- No business logic
+- View controllers only — no REST API
+- No business logic; delegates entirely to services
 
 ### Service Layer
 
 - Core application logic
 - All write operations are `@Transactional`
 - Read operations use `@Transactional(readOnly = true)`
+- Duplicate checks throw typed domain exceptions before persisting
 
 ### Repository Layer
 
 - Spring Data JPA with Hibernate
-- Derived query methods and JPQL `@Query` for search
-- `@EntityGraph` used to avoid N+1 on author fetching
+- Derived query methods for filtered lookups
+- `@EntityGraph` used to avoid N+1 on association fetching
+- Returns Spring Data projection interfaces directly — no manual mapping
+
+### Exception Layer
+
+- Typed domain exceptions: `EntityNotFoundException`, `EntityAlreadyExistsException`, `EntityDeletedException`
+- `@ControllerAdvice` in `GlobalExceptionHandler` renders the `error.kte` template with appropriate HTTP status
 
 ---
 
@@ -38,7 +45,7 @@ The application follows a layered architecture:
 | Kotlin          | Primary language             |
 | JDK 25          | Runtime                      |
 | Spring Boot     | Application framework        |
-| Spring Web MVC  | REST + view controllers      |
+| Spring Web MVC  | View controllers             |
 | Spring Data JPA | Repository layer             |
 | Hibernate       | ORM                          |
 | PostgreSQL      | Database                     |
@@ -53,78 +60,96 @@ The application follows a layered architecture:
 
 ### Book
 
-- `id`, `title`, `isbn`, `publishedAt`, `pageCount`, `genre`
-- Soft delete via `deleted` flag
-- `createdAt`, `updatedAt` managed by Hibernate
+- `id`, `title`, `isbn`, `publicationDate`, `pageCount`
+- Belongs to one `Publisher`
+- Soft delete via `deletedAt` timestamp (`null` = active)
+- `createdAt`, `updatedAt` managed by Hibernate via DB timestamps
 
 ### Author
 
-- `id`, `firstname`, `lastname`, `email`, `dob`, `bio`
-- Soft delete via `deleted` flag
+- `id`, `firstName`, `lastName`, `bio`
+- Soft delete via `deletedAt` timestamp
 
-### Review
+### Publisher
 
-- `id`, `rating` (1–5), `body`
-- Belongs to `Book` and `User`
+- `id`, `name`
+- Soft delete via `deletedAt` timestamp
 
-### User
+### Genre
 
-- `id`, `username`
+- `id`, `name` (unique)
+- No soft delete
 
 ### Relationships
 
-- `Book ↔ Author`: Many-to-Many via `authors_books` join table (Book is the owning side)
-- `Book → Review`: One-to-Many
-- `User → Review`: One-to-Many
+- `Book ↔ Author`: Many-to-Many via `book_authors` join table (Book is the owning side)
+- `Book ↔ Genre`: Many-to-Many via `book_genres` join table (Book is the owning side)
+- `Book → Publisher`: Many-to-One
 
 ---
 
-## API Endpoints
+## UI Routes
 
-### Book REST API (`/api/books`)
+### Home
 
-| Method | Endpoint          | Description                              |
-|--------|-------------------|------------------------------------------|
-| GET    | /api/books        | Get all books (paginated, filter/search) |
-| GET    | /api/books/{isbn} | Get book by ISBN                         |
-| GET    | /api/books/recent | Get recently added books                 |
+| Method | Path | Description                        |
+|--------|------|------------------------------------|
+| GET    | `/`  | Home page — recent books and stats |
 
-Query parameters for `GET /api/books`:
+### Books (`/books`)
 
-- `page` (default: 0)
-- `pageSize` (default: 10)
-- `query` — searches title, ISBN, genre
-- `genre` — filters by genre (case-insensitive)
+| Method | Path               | Description            |
+|--------|--------------------|------------------------|
+| GET    | /books             | Paginated book catalog |
+| GET    | /books/{id}        | Book detail page       |
+| GET    | /books/new         | Add book form          |
+| POST   | /books/new         | Submit new book        |
+| GET    | /books/{id}/edit   | Edit book form         |
+| POST   | /books/{id}/edit   | Submit book update     |
+| POST   | /books/{id}/delete | Soft delete a book     |
 
-### Book UI Routes
+### Authors (`/authors`)
 
-| Method | Path          | Description      |
-|--------|---------------|------------------|
-| GET    | /             | Home page        |
-| GET    | /books        | Browse all books |
-| GET    | /books/{isbn} | Book detail page |
-| GET    | /books/form   | Add book form    |
-| POST   | /books/form   | Submit new book  |
+| Method | Path                 | Description            |
+|--------|----------------------|------------------------|
+| GET    | /authors             | Paginated author index |
+| GET    | /authors/{id}        | Author detail + books  |
+| GET    | /authors/add         | Add author form        |
+| POST   | /authors/add         | Submit new author      |
+| GET    | /authors/{id}/edit   | Edit author form       |
+| POST   | /authors/{id}/edit   | Submit author update   |
+| POST   | /authors/{id}/delete | Soft delete an author  |
 
 ---
 
-## DTOs
+## DTOs and Projections
 
-### Request
+### Request DTOs
 
-- `BookRequestDto` — `title`, `isbn`, `publishedAt`, `pageCount`, `genre`, `authorIds`
+- `BookCreateRequest` — `title`, `isbn`, `publisherId`, `publicationDate`, `pageCount`, `authorIds`, `genreIds`
+- `AuthorRequest` — `firstName`, `lastName`, `bio`
+- `PublisherRequest` — `name`
+- `GenreRequest` — `name`
 
-### Response
+### Projection Interfaces (read side)
 
-- `BookResponseDto` — `id`, `title`, `isbn`, `genre`, `pageCount`, `publishedAt`, `authors`
-- `AuthorResponseDto` — `id`, `firstname`, `lastname`, `email`, `dob`
+- `BookCatalogItem` — `id`, `title`, `isbn`, `pageCount`, `publicationDate`, `genres`
+- `BookDetailProjection` — full book detail including `publisher`, `authors`, `genres`
+- `BookCardProjection` — `id`, `title`, `publicationDate` (home page cards)
+- `AuthorResponse` — `id`, `firstName`, `lastName`, `bio`
+- `AuthorBookItem` — `id`, `title`, `publicationDate`, `genres`
+- `PublisherResponse` — `id`, `name`
+- `GenreResponse` — `id`, `name`
+
+All projections are Spring Data interfaces backed by Hibernate — no manual mapping.
 
 ---
 
 ## Soft Delete
 
-Entities are never hard deleted. Every query filters by `deleted = false`.
-The `deleted` column defaults to `false` at the database level via Hibernate `@Generated`.
+Entities are never hard deleted. Every query filters by `deletedAt IS NULL`.
+Accessing a deleted or missing entity throws `EntityNotFoundException` or `EntityDeletedException`,
+handled globally by `GlobalExceptionHandler`.
 
 ---
 
@@ -132,10 +157,10 @@ The `deleted` column defaults to `false` at the database level via Hibernate `@G
 
 Files located in `src/main/resources/db/migration/`:
 
-| File                | Description               |
-|---------------------|---------------------------|
-| `V1__init.sql`      | Schema creation           |
-| `V2__seed_data.sql` | Initial authors and books |
+| File                | Description                                             |
+|---------------------|---------------------------------------------------------|
+| `V1__init.sql`      | Schema: publishers, authors, genres, books, join tables |
+| `V2__seed_data.sql` | Seed data: publishers, authors, books, genres           |
 
 Flyway runs automatically on startup.
 
@@ -143,17 +168,29 @@ Flyway runs automatically on startup.
 
 ## Templates (KTE)
 
-Server-side rendering using JTE with Kotlin (`.kte` files) in `src/main/jte/`.
+Server-side rendering using JTE with Kotlin (`.kte` files) in `src/main/kte/`.
 
-| Template         | Route           |
-|------------------|-----------------|
-| `layout.kte`     | Shared layout   |
-| `home.kte`       | `/`             |
-| `books.kte`      | `/books`        |
-| `book.kte`       | `/books/{isbn}` |
-| `books-form.kte` | `/books/form`   |
+| Template            | Route                                |
+|---------------------|--------------------------------------|
+| `layout.kte`        | Shared layout                        |
+| `index.kte`         | `/`                                  |
+| `error.kte`         | Error pages                          |
+| `books/index.kte`   | `/books`                             |
+| `books/show.kte`    | `/books/{id}`                        |
+| `books/form.kte`    | `/books/new`, `/books/{id}/edit`     |
+| `authors/index.kte` | `/authors`                           |
+| `authors/show.kte`  | `/authors/{id}`                      |
+| `authors/form.kte`  | `/authors/add`, `/authors/{id}/edit` |
 
-All pages use `@template.layout(title, content)` to avoid repeating nav/footer.
+All pages extend `@template.layout(title, activeNav, content)`.
+
+---
+
+## Static Assets
+
+Inter font is self-hosted under `src/main/resources/static/fonts/` and served via Spring MVC's
+`ResourceHandlerRegistry` with a 1-year `Cache-Control: public` header. CSS is served similarly
+from `src/main/resources/static/css/`.
 
 ---
 
@@ -225,12 +262,12 @@ docker-compose up database
 
 ## Potential Future Improvements
 
-- [X] Author CRUD — create, edit, delete authors via UI and REST API
+- [X] Author CRUD — create, edit, delete authors via UI
 - [X] Book edit and soft delete via UI
 - [ ] Review system — users can submit 1–5 star ratings and written reviews
 - [ ] User authentication with Spring Security
-- [ ] Input validation with `@Valid` and proper error responses
-- [ ] Global exception handler with `@ControllerAdvice`
+- [X] Input validation with `@Valid` and proper error responses
+- [X] Global exception handler with `@ControllerAdvice`
 - [X] Swagger / OpenAPI documentation
 - [ ] Pagination controls on the home page recent section
 - [ ] Book cover image upload
