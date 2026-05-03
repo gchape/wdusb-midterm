@@ -35,12 +35,13 @@
 <main class="main-content">
     @if(flashSuccess != null)
         <div class="flash-bar flash-bar--success" role="alert">
-            <span class="flash-icon">✓</span> ${flashSuccess}
+            ${flashSuccess}
         </div>
     @endif
+
     @if(flashError != null)
         <div class="flash-bar flash-bar--error" role="alert">
-            <span class="flash-icon">✕</span> ${flashError}
+            ${flashError}
         </div>
     @endif
 

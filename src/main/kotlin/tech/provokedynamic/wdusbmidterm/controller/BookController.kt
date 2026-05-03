@@ -31,6 +31,7 @@ class BookController(
     ): String {
         val pageRequest = PageRequest.of(page - 1, 12, Sort.by(Sort.Direction.DESC, "publicationDate"))
         val booksPage = bookService.getCatalog(pageRequest)
+
         model.addAttribute(
             "vm", BookCatalogViewModel(
                 currentPage = page,
@@ -54,6 +55,7 @@ class BookController(
         model.addAttribute("publishers", publisherService.getAllPublishers())
         model.addAttribute("authors", authorService.getAllAuthors())
         model.addAttribute("genres", genreService.getAllGenres())
+
         return "books/form"
     }
 
@@ -72,8 +74,10 @@ class BookController(
             model.addAttribute("errors", bindingResult.toErrorMap())
             return "books/form"
         }
+
         val saved = bookService.createBook(request)
         redirectAttributes.addFlashAttribute("flashSuccess", "\"${saved.title}\" was added to the catalog.")
+
         return "redirect:/books/${saved.id}"
     }
 
@@ -83,6 +87,7 @@ class BookController(
         model.addAttribute("publishers", publisherService.getAllPublishers())
         model.addAttribute("authors", authorService.getAllAuthors())
         model.addAttribute("genres", genreService.getAllGenres())
+
         return "books/form"
     }
 
@@ -102,8 +107,10 @@ class BookController(
             model.addAttribute("errors", bindingResult.toErrorMap())
             return "books/form"
         }
+
         val updated = bookService.updateBook(id, request)
         redirectAttributes.addFlashAttribute("flashSuccess", "\"${updated.title}\" was updated.")
+
         return "redirect:/books/${updated.id}"
     }
 
@@ -114,6 +121,7 @@ class BookController(
     ): String {
         bookService.softDeleteBook(id)
         redirectAttributes.addFlashAttribute("flashSuccess", "Book was deleted.")
+
         return "redirect:/books"
     }
 }

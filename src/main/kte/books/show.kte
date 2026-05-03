@@ -1,9 +1,12 @@
 @import tech.provokedynamic.wdusbmidterm.model.projection.BookDetailProjection
 
 @param book: BookDetailProjection
+@param flashSuccess: String? = null
+@param flashError: String? = null
 
-@template.layout(title = book.title, activeNav = "books", content = @`
+@template.layout(title = book.title, activeNav = "books", flashSuccess = flashSuccess, flashError = flashError, content = @`
     <div class="container page-container">
+        <!-- ── Breadcrumb ── -->
         <nav class="breadcrumb" aria-label="Breadcrumb">
             <a href="/" class="breadcrumb-link">Home</a>
             <span class="breadcrumb-sep">›</span>
@@ -17,7 +20,6 @@
             <div class="detail-cover book-cover-color-${(book.id % 8) + 1}">
                 <span class="detail-cover-initial">${book.title.substring(0, 1).uppercase()}</span>
             </div>
-
             <!-- Info -->
             <div class="detail-info">
                 <!-- Genre tags -->
@@ -40,7 +42,6 @@
                         @endfor
                     </p>
                 @endif
-
                 <!-- Attributes -->
                 <div class="detail-attrs">
                     <div class="attr">
@@ -62,7 +63,6 @@
                         </div>
                     @endif
                 </div>
-
                 <!-- Actions -->
                 <div class="detail-actions">
                     <a href="/books/${book.id}/edit" class="btn btn--primary">Edit Book</a>

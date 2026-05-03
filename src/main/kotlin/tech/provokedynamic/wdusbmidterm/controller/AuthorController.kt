@@ -25,6 +25,7 @@ class AuthorController(
     ): String {
         val pageRequest = PageRequest.of(page - 1, 18, Sort.by(Sort.Direction.ASC, "lastName"))
         val authorsPage = authorService.getAuthors(pageRequest)
+
         model.addAttribute(
             "vm", AuthorIndexViewModel(
                 currentPage = page,
@@ -33,6 +34,7 @@ class AuthorController(
                 totalPages = authorsPage.totalPages
             )
         )
+
         return "authors/index"
     }
 
@@ -40,12 +42,14 @@ class AuthorController(
     fun showAuthor(@PathVariable id: Long, model: Model): String {
         model.addAttribute("author", authorService.getAuthorById(id))
         model.addAttribute("books", authorService.getBooksForAuthor(id))
+
         return "authors/show"
     }
 
     @GetMapping("/add")
     fun newAuthorForm(model: Model): String {
         model.addAttribute("author", null)
+
         return "authors/form"
     }
 
@@ -61,14 +65,17 @@ class AuthorController(
             model.addAttribute("errors", bindingResult.toErrorMap())
             return "authors/form"
         }
+
         val saved = authorService.createAuthor(request)
         redirectAttributes.addFlashAttribute("flashSuccess", "${saved.firstName} ${saved.lastName} was added.")
+
         return "redirect:/authors/${saved.id}"
     }
 
     @GetMapping("/{id}/edit")
     fun editAuthorForm(@PathVariable id: Long, model: Model): String {
         model.addAttribute("author", authorService.getAuthorById(id))
+
         return "authors/form"
     }
 
@@ -83,10 +90,13 @@ class AuthorController(
         if (bindingResult.hasErrors()) {
             model.addAttribute("author", authorService.getAuthorById(id))
             model.addAttribute("errors", bindingResult.toErrorMap())
+
             return "authors/form"
         }
+
         val updated = authorService.updateAuthor(id, request)
         redirectAttributes.addFlashAttribute("flashSuccess", "${updated.firstName} ${updated.lastName} was updated.")
+
         return "redirect:/authors/${updated.id}"
     }
 
@@ -97,6 +107,7 @@ class AuthorController(
     ): String {
         authorService.softDeleteAuthor(id)
         redirectAttributes.addFlashAttribute("flashSuccess", "Author was deleted.")
+
         return "redirect:/authors"
     }
 }

@@ -14,6 +14,7 @@ class HomeController(
         model.addAttribute("recentBooks", homeService.getRecentBooks())
         model.addAttribute("totalBooks", homeService.getTotalBooks())
         model.addAttribute("totalAuthors", homeService.getTotalAuthors())
+
         return "index"
     }
 }

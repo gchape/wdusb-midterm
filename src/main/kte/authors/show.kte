@@ -3,11 +3,12 @@
 
 @param author: AuthorResponse
 @param books: List<AuthorBookItem>
+@param flashSuccess: String? = null
+@param flashError: String? = null
 
-@template.layout(title = "${author.firstName} ${author.lastName}", activeNav = "authors", content = @`
-
+@template.layout(title = "${author.firstName} ${author.lastName}", activeNav = "authors", flashSuccess = flashSuccess, flashError = flashError, content = @`
     <div class="container page-container">
-
+        <!-- ── Breadcrumb ── -->
         <nav class="breadcrumb" aria-label="Breadcrumb">
             <a href="/" class="breadcrumb-link">Home</a>
             <span class="breadcrumb-sep">›</span>
@@ -17,7 +18,6 @@
         </nav>
 
         <div class="author-detail-layout">
-
             <!-- ── Sidebar ── -->
             <aside class="author-detail-sidebar">
                 <div class="author-detail-avatar author-avatar-color-${(author.id % 6) + 1}">
@@ -33,7 +33,6 @@
                     <a href="/authors" class="btn btn--ghost btn--full">All Authors</a>
                 </div>
             </aside>
-
             <!-- ── Content ── -->
             <div class="author-detail-content">
                 <h1 class="detail-title">${author.firstName} ${author.lastName}</h1>
