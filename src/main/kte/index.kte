@@ -9,7 +9,7 @@
     <section class="hero">
         <div class="hero-bg"></div>
         <div class="container hero-content">
-            <span class="hero-badge">Welcome to your library</span>
+            <span class="hero-badge">Welcome to LibSys</span>
             <h1 class="hero-title">
                 Discover, Manage &amp;<br>
                 <span class="hero-title-accent">Love Your Books</span>

@@ -3,10 +3,10 @@
 @import tech.provokedynamic.wdusbmidterm.model.projection.AuthorResponse
 @import tech.provokedynamic.wdusbmidterm.model.projection.GenreResponse
 
-@param book: BookDetailProjection? = null
-@param publishers: List<PublisherResponse>
-@param authors: List<AuthorResponse>
 @param genres: List<GenreResponse>
+@param authors: List<AuthorResponse>
+@param publishers: List<PublisherResponse>
+@param book: BookDetailProjection? = null
 @param errors: Map<String, String> = emptyMap()
 
 !{val isEdit = book != null}

@@ -38,7 +38,7 @@ class BookService(
         if (bookRepository.existsByIsbnAndDeletedAtNull(request.isbn.trim()))
             throw EntityAlreadyExistsException("A book with ISBN '${request.isbn}' already exists")
 
-        val publisher = publisherRepository.findByIdAndDeletedAtNull(request.publisherId)
+        val publisher = publisherRepository.findByIdAndDeletedAtNull(request.publisherId!!)
             ?: throw EntityNotFoundException("Publisher ${request.publisherId} not found")
 
         val authors = authorRepository.findAllById(request.authorIds)
@@ -47,8 +47,8 @@ class BookService(
         val book = Book(
             isbn = request.isbn.trim(),
             title = request.title.trim(),
-            pageCount = request.pageCount,
-            publicationDate = request.publicationDate,
+            pageCount = request.pageCount!!,
+            publicationDate = request.publicationDate!!,
             publisher = publisher
         )
         book.authors.addAll(authors)
@@ -68,9 +68,9 @@ class BookService(
 
         book.isbn = request.isbn.trim()
         book.title = request.title.trim()
-        book.pageCount = request.pageCount
-        book.publicationDate = request.publicationDate
-        book.publisher = publisherRepository.findById(request.publisherId)
+        book.pageCount = request.pageCount!!
+        book.publicationDate = request.publicationDate!!
+        book.publisher = publisherRepository.findById(request.publisherId!!)
             .orElseThrow { EntityNotFoundException("Publisher ${request.publisherId} not found") }
 
         book.authors.clear()
