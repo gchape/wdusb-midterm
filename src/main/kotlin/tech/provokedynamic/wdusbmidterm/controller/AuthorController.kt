@@ -8,7 +8,7 @@ import org.springframework.ui.Model
 import org.springframework.validation.BindingResult
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.servlet.mvc.support.RedirectAttributes
-import tech.provokedynamic.wdusbmidterm.model.dto.AuthorRequestDTO
+import tech.provokedynamic.wdusbmidterm.model.dto.AuthorRequest
 import tech.provokedynamic.wdusbmidterm.model.view.AuthorIndexViewModel
 import tech.provokedynamic.wdusbmidterm.model.view.toErrorMap
 import tech.provokedynamic.wdusbmidterm.service.AuthorService
@@ -25,12 +25,11 @@ class AuthorController(
     ): String {
         val pageRequest = PageRequest.of(page - 1, 18, Sort.by(Sort.Direction.ASC, "lastName"))
         val authorsPage = authorService.getAuthors(pageRequest)
-
         model.addAttribute(
             "vm", AuthorIndexViewModel(
-                authors = authorsPage.content,
-                totalCount = authorsPage.totalElements,
                 currentPage = page,
+                authors = authorsPage.content.toSet(),
+                totalCount = authorsPage.totalElements,
                 totalPages = authorsPage.totalPages
             )
         )
@@ -52,7 +51,7 @@ class AuthorController(
 
     @PostMapping("/add")
     fun createAuthor(
-        @Valid @ModelAttribute request: AuthorRequestDTO,
+        @Valid @ModelAttribute request: AuthorRequest,
         bindingResult: BindingResult,
         model: Model,
         redirectAttributes: RedirectAttributes
@@ -62,18 +61,9 @@ class AuthorController(
             model.addAttribute("errors", bindingResult.toErrorMap())
             return "authors/form"
         }
-        return try {
-            val saved = authorService.createAuthor(request)
-            redirectAttributes.addFlashAttribute(
-                "flashSuccess",
-                "${saved.firstName} ${saved.lastName} was added."
-            )
-            "redirect:/authors/${saved.id}"
-        } catch (ex: Exception) {
-            model.addAttribute("author", null)
-            model.addAttribute("flashError", "Could not save author: ${ex.message}")
-            "authors/form"
-        }
+        val saved = authorService.createAuthor(request)
+        redirectAttributes.addFlashAttribute("flashSuccess", "${saved.firstName} ${saved.lastName} was added.")
+        return "redirect:/authors/${saved.id}"
     }
 
     @GetMapping("/{id}/edit")
@@ -85,7 +75,7 @@ class AuthorController(
     @PostMapping("/{id}/edit")
     fun updateAuthor(
         @PathVariable id: Long,
-        @Valid @ModelAttribute request: AuthorRequestDTO,
+        @Valid @ModelAttribute request: AuthorRequest,
         bindingResult: BindingResult,
         model: Model,
         redirectAttributes: RedirectAttributes
@@ -95,18 +85,9 @@ class AuthorController(
             model.addAttribute("errors", bindingResult.toErrorMap())
             return "authors/form"
         }
-        return try {
-            val updated = authorService.updateAuthor(id, request)
-            redirectAttributes.addFlashAttribute(
-                "flashSuccess",
-                "${updated.firstName} ${updated.lastName} was updated."
-            )
-            "redirect:/authors/${updated.id}"
-        } catch (ex: Exception) {
-            model.addAttribute("author", authorService.getAuthorById(id))
-            model.addAttribute("flashError", "Could not update author: ${ex.message}")
-            "authors/form"
-        }
+        val updated = authorService.updateAuthor(id, request)
+        redirectAttributes.addFlashAttribute("flashSuccess", "${updated.firstName} ${updated.lastName} was updated.")
+        return "redirect:/authors/${updated.id}"
     }
 
     @PostMapping("/{id}/delete")

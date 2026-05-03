@@ -8,7 +8,7 @@ import org.springframework.ui.Model
 import org.springframework.validation.BindingResult
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.servlet.mvc.support.RedirectAttributes
-import tech.provokedynamic.wdusbmidterm.model.dto.BookRequestDTO
+import tech.provokedynamic.wdusbmidterm.model.dto.BookCreateRequest
 import tech.provokedynamic.wdusbmidterm.model.view.BookCatalogViewModel
 import tech.provokedynamic.wdusbmidterm.model.view.toErrorMap
 import tech.provokedynamic.wdusbmidterm.service.AuthorService
@@ -30,14 +30,12 @@ class BookController(
         model: Model
     ): String {
         val pageRequest = PageRequest.of(page - 1, 12, Sort.by(Sort.Direction.DESC, "publicationDate"))
-
         val booksPage = bookService.getCatalog(pageRequest)
-
         model.addAttribute(
             "vm", BookCatalogViewModel(
-                books = booksPage.content,
-                totalCount = booksPage.totalElements,
                 currentPage = page,
+                books = booksPage.content.toSet(),
+                totalCount = booksPage.totalElements,
                 totalPages = booksPage.totalPages,
             )
         )
@@ -61,7 +59,7 @@ class BookController(
 
     @PostMapping("/new")
     fun createBook(
-        @Valid @ModelAttribute request: BookRequestDTO,
+        @Valid @ModelAttribute request: BookCreateRequest,
         bindingResult: BindingResult,
         model: Model,
         redirectAttributes: RedirectAttributes
@@ -74,18 +72,9 @@ class BookController(
             model.addAttribute("errors", bindingResult.toErrorMap())
             return "books/form"
         }
-        return try {
-            val saved = bookService.createBook(request)
-            redirectAttributes.addFlashAttribute("flashSuccess", "\"${saved.title}\" was added to the catalog.")
-            "redirect:/books/${saved.id}"
-        } catch (ex: Exception) {
-            model.addAttribute("book", null)
-            model.addAttribute("publishers", publisherService.getAllPublishers())
-            model.addAttribute("authors", authorService.getAllAuthors())
-            model.addAttribute("genres", genreService.getAllGenres())
-            model.addAttribute("flashError", "Could not save book: ${ex.message}")
-            "books/form"
-        }
+        val saved = bookService.createBook(request)
+        redirectAttributes.addFlashAttribute("flashSuccess", "\"${saved.title}\" was added to the catalog.")
+        return "redirect:/books/${saved.id}"
     }
 
     @GetMapping("/{id}/edit")
@@ -100,7 +89,7 @@ class BookController(
     @PostMapping("/{id}/edit")
     fun updateBook(
         @PathVariable id: Long,
-        @Valid @ModelAttribute request: BookRequestDTO,
+        @Valid @ModelAttribute request: BookCreateRequest,
         bindingResult: BindingResult,
         model: Model,
         redirectAttributes: RedirectAttributes
@@ -113,18 +102,9 @@ class BookController(
             model.addAttribute("errors", bindingResult.toErrorMap())
             return "books/form"
         }
-        return try {
-            val updated = bookService.updateBook(id, request)
-            redirectAttributes.addFlashAttribute("flashSuccess", "\"${updated.title}\" was updated.")
-            "redirect:/books/${updated.id}"
-        } catch (ex: Exception) {
-            model.addAttribute("book", bookService.getBookById(id))
-            model.addAttribute("publishers", publisherService.getAllPublishers())
-            model.addAttribute("authors", authorService.getAllAuthors())
-            model.addAttribute("genres", genreService.getAllGenres())
-            model.addAttribute("flashError", "Could not update book: ${ex.message}")
-            "books/form"
-        }
+        val updated = bookService.updateBook(id, request)
+        redirectAttributes.addFlashAttribute("flashSuccess", "\"${updated.title}\" was updated.")
+        return "redirect:/books/${updated.id}"
     }
 
     @PostMapping("/{id}/delete")

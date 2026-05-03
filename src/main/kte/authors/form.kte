@@ -1,6 +1,6 @@
-@import tech.provokedynamic.wdusbmidterm.model.dto.AuthorResponseDTO
+@import tech.provokedynamic.wdusbmidterm.model.projection.AuthorResponse
 
-@param author: AuthorResponseDTO? = null
+@param author: AuthorResponse? = null
 @param errors: Map<String, String> = emptyMap()
 
 !{val isEdit = author != null}

@@ -1,6 +1,6 @@
-@import tech.provokedynamic.wdusbmidterm.model.dto.BookResponseDTO
+@import tech.provokedynamic.wdusbmidterm.model.projection.BookDetailProjection
 
-@param book: BookResponseDTO
+@param book: BookDetailProjection
 
 @template.layout(title = book.title, activeNav = "books", content = @`
     <div class="container page-container">

@@ -1,7 +1,6 @@
-@import java.util.List
-@import tech.provokedynamic.wdusbmidterm.model.dto.BookResponseDTO
+@import tech.provokedynamic.wdusbmidterm.model.projection.BookCardProjection
 
-@param recentBooks: List<BookResponseDTO>
+@param recentBooks: List<BookCardProjection>
 @param totalBooks: Long
 @param totalAuthors: Long
 

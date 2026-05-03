@@ -1,0 +1,13 @@
+@param status: Int
+@param message: String?
+
+@template.layout(title = "Error $status", activeNav = "", content = @`
+    <div class="container page-container">
+        <div class="empty-state empty-state--full">
+            <span class="empty-icon">${if(status == 404) "🔍" else if(status == 410) "🗑️" else "⚠️"}</span>
+            <h1 class="page-title">${status}</h1>
+            <p>${message ?: "An unexpected error occurred."}</p>
+            <a href="/" class="btn btn--primary">Go Home</a>
+        </div>
+    </div>
+`)

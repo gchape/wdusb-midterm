@@ -1,8 +1,8 @@
-@import tech.provokedynamic.wdusbmidterm.model.dto.AuthorResponseDTO
-@import tech.provokedynamic.wdusbmidterm.model.dto.BookResponseDTO
+@import tech.provokedynamic.wdusbmidterm.model.projection.AuthorResponse
+@import tech.provokedynamic.wdusbmidterm.model.projection.AuthorBookItem
 
-@param author: AuthorResponseDTO
-@param books: List<BookResponseDTO>
+@param author: AuthorResponse
+@param books: List<AuthorBookItem>
 
 @template.layout(title = "${author.firstName} ${author.lastName}", activeNav = "authors", content = @`
 
@@ -68,7 +68,7 @@
                                         <span class="author-book-title">${book.title}</span>
                                         <span class="author-book-year">${book.publicationDate.toString()}</span>
                                     </div>
-                                    @if(book.genres != null && !book.genres.isEmpty())
+                                    @if(!book.genres.isEmpty())
                                         <div class="author-book-tags">
                                             @for(genre in book.genres)
                                                 <span class="tag tag--sm">${genre.name}</span>

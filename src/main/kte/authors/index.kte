@@ -46,9 +46,9 @@
                 @if(vm.totalPages > 1)
                     <nav class="pagination" aria-label="Pagination">
                         @if(vm.currentPage > 1)
-                            <a href="/authors?page=${vm.currentPage - 1}" class="pagination-btn">← Prev</a>
+                            <a href="/authors?page=${vm.currentPage - 1}" class="pagination-btn">Prev</a>
                         @else
-                            <span class="pagination-btn pagination-btn--disabled">← Prev</span>
+                            <span class="pagination-btn pagination-btn--disabled">Prev</span>
                         @endif
 
                         <div class="pagination-pages">
@@ -61,9 +61,9 @@
                         </div>
 
                         @if(vm.currentPage < vm.totalPages)
-                            <a href="/authors?page=${vm.currentPage + 1}" class="pagination-btn">Next →</a>
+                            <a href="/authors?page=${vm.currentPage + 1}" class="pagination-btn">Next</a>
                         @else
-                            <span class="pagination-btn pagination-btn--disabled">Next →</span>
+                            <span class="pagination-btn pagination-btn--disabled">Next</span>
                         @endif
                     </nav>
                 @endif

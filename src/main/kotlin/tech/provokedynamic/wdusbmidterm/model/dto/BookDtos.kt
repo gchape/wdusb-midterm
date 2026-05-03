@@ -1,22 +1,9 @@
 package tech.provokedynamic.wdusbmidterm.model.dto
 
 import jakarta.validation.constraints.*
-import tech.provokedynamic.wdusbmidterm.entity.Book
 import java.time.LocalDate
 
-data class BookResponseDTO(
-    val id: Long,
-    val isbn: String,
-    val title: String,
-    val pageCount: Short,
-    val publicationDate: LocalDate,
-    val publisher: PublisherResponseDTO?,
-    val authors: List<AuthorResponseDTO>,
-    val genres: List<GenreResponseDTO>,
-    val rating: Float,
-)
-
-data class BookRequestDTO(
+data class BookCreateRequest(
     @field:NotBlank(message = "Title is required")
     @field:Size(max = 255, message = "Title cannot exceed 255 characters")
     val title: String,
@@ -43,17 +30,3 @@ data class BookRequestDTO(
     @field:NotEmpty(message = "A book must have at least one author")
     val authorIds: List<Long>
 )
-
-fun Book.toResponseDto(): BookResponseDTO {
-    return BookResponseDTO(
-        id = this.id,
-        isbn = this.isbn,
-        title = this.title,
-        pageCount = this.pageCount,
-        publicationDate = this.publicationDate,
-        publisher = this.publisher.toResponseDto(),
-        genres = this.genres.map { it.toResponseDto() },
-        authors = this.authors.map { it.toResponseDto() },
-        rating = this.reviews.fold(0f) { acc, review -> acc + review.rating },
-    )
-}

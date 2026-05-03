@@ -1,21 +1,21 @@
 package tech.provokedynamic.wdusbmidterm.model.view
 
 import org.springframework.validation.BindingResult
-import tech.provokedynamic.wdusbmidterm.model.dto.AuthorResponseDTO
-import tech.provokedynamic.wdusbmidterm.model.dto.BookResponseDTO
+import tech.provokedynamic.wdusbmidterm.model.projection.AuthorResponse
+import tech.provokedynamic.wdusbmidterm.model.projection.BookCatalogItem
 
 data class BookCatalogViewModel(
-    val books: List<BookResponseDTO>,
+    val books: Set<BookCatalogItem>,
     val totalCount: Long,
     val currentPage: Int,
     val totalPages: Int,
 )
 
 data class AuthorIndexViewModel(
-    val authors: List<AuthorResponseDTO>,
+    val authors: Set<AuthorResponse>,
     val totalCount: Long,
     val currentPage: Int,
-    val totalPages: Int
+    val totalPages: Int,
 )
 
 fun BindingResult.toErrorMap(): Map<String, String> =
