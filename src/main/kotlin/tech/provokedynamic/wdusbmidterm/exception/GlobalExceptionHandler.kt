@@ -1,7 +1,5 @@
 package tech.provokedynamic.wdusbmidterm.exception
 
-package tech.provokedynamic.wdusbmidterm.exception
-
 import org.springframework.http.HttpStatus
 import org.springframework.ui.Model
 import org.springframework.web.bind.annotation.ControllerAdvice
@@ -32,6 +30,14 @@ class GlobalExceptionHandler {
     fun handleGeneral(ex: Exception, model: Model): String {
         model.addAttribute("status", 500)
         model.addAttribute("message", "Something went wrong. Please try again.")
+        return "error"
+    }
+
+    @ExceptionHandler(EntityAlreadyExistsException::class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    fun handleConflict(ex: EntityAlreadyExistsException, model: Model): String {
+        model.addAttribute("status", 409)
+        model.addAttribute("message", ex.message)
         return "error"
     }
 }
