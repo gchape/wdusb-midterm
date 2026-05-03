@@ -3,7 +3,8 @@
 ## Overview
 
 A Spring Boot application written in Kotlin for managing a book library. Supports browsing and managing books, authors,
-publishers, and genres with both a server-side rendered UI (KTE) and a full REST API.
+publishers, and genres with both a server-side rendered UI using **KTE templates** and a modern **REST API** with
+OpenAPI documentation.
 
 ---
 
@@ -13,126 +14,222 @@ The application follows a layered architecture:
 
 ### Controller Layer
 
-* **View Controllers:** Handle HTTP requests for server-side rendering using KTE templates.
-* **REST Controllers:** Provide a programmatic API under the `/api` prefix, returning JSON and utilizing SpringDoc for
-  OpenAPI documentation.
-* Delegates all business logic to the service layer.
+- **REST Controllers (`/api/**`):** Provides JSON endpoints for programmatic access and CRUD operations.
+- **View Controllers:** Handles HTTP requests for server-side rendered UI; no business logic; delegates entirely to
+  services.
 
 ### Service Layer
 
-* Core application logic and validation.
-* All write operations are `@Transactional`.
-* Read operations use `@Transactional(readOnly = true)`.
-* Duplicate checks throw typed domain exceptions (e.g., `EntityAlreadyExistsException`) before persisting.
+- Core application logic and validation.
+- All write operations are `@Transactional`.
+- Read operations use `@Transactional(readOnly = true)`.
+- Duplicate checks throw typed domain exceptions before persisting.
 
 ### Repository Layer
 
-* Spring Data JPA with Hibernate.
-* `@EntityGraph` used to avoid N+1 on association fetching.
-* Returns Spring Data projection interfaces directly to optimize database performance.
+- Spring Data JPA with Hibernate.
+- Derived query methods for filtered lookups.
+- `@EntityGraph` used to avoid N+1 on association fetching.
+- Returns Spring Data projection interfaces directly — no manual mapping.
+
+### Exception Layer
+
+- Typed domain exceptions: `EntityNotFoundException`, `EntityAlreadyExistsException`, `EntityDeletedException`.
+- `@ControllerAdvice` in `GlobalExceptionHandler` renders the `error.kte` template or returns JSON error responses for
+  the API.
+
+---
+
+## Project Hierarchy
+
+```text
+.
+├── src/main/
+│   ├── kotlin/tech/provokedynamic/wdusbmidterm/
+│   │   ├── controller/
+│   │   │   ├── api/             # REST Endpoints (JSON)
+│   │   │   └── ...              # View Controllers (KTE)
+│   │   ├── entity/              # JPA Entities (Book, Author, etc.)
+│   │   ├── exception/           # Custom Errors & Global Handler
+│   │   ├── model/
+│   │   │   ├── dto/             # Request payloads
+│   │   │   ├── projection/      # Read-only API/UI interfaces
+│   │   │   └── view/            # UI-specific ViewModels
+│   │   ├── repository/          # Spring Data JPA Repositories
+│   │   └── service/             # Business Logic & Transactions
+│   ├── kte/                     # KTE Templates (.kte)
+│   └── resources/
+│       ├── db/migration/        # Flyway SQL scripts
+│       ├── static/              # CSS & Fonts (Inter)
+│       └── application.yaml     # App configuration
+├── docker-compose.yaml          # Orchestration
+└── pom.xml                      # KTE source set: src/main/kte
+```
 
 ---
 
 ## Technologies
 
-| Technology              | Usage                       |
-|:------------------------|:----------------------------|
-| **Kotlin**              | Primary language            |
-| **JDK 25**              | Runtime                     |
-| **Spring Boot**         | Application framework       |
-| **Spring Web MVC**      | View and REST controllers   |
-| **SpringDoc / Swagger** | OpenAPI 3.0 documentation   |
-| **Spring Data JPA**     | Repository layer            |
-| **Hibernate**           | ORM                         |
-| **PostgreSQL**          | Database                    |
-| **Flyway**              | Schema migrations           |
-| **KTE**                 | Server-side template engine |
-| **Docker**              | Containerization            |
+| Technology              | Usage                                               |
+|:------------------------|:----------------------------------------------------|
+| **Kotlin**              | Primary language                                    |
+| **JDK 25**              | Runtime                                             |
+| **Spring Boot**         | Application framework                               |
+| **SpringDoc / Swagger** | OpenAPI 3.0 API Documentation                       |
+| **Spring Data JPA**     | Repository layer                                    |
+| **Hibernate**           | ORM                                                 |
+| **PostgreSQL**          | Database                                            |
+| **Flyway**              | Schema migrations                                   |
+| **KTE**                 | Server-side template engine (Kotlin version of JTE) |
+| **Logback**             | Logging with Spring profiles                        |
+| **Docker**              | Containerization                                    |
 
 ---
 
-## REST API Routes (`/api`)
+## Entities and Relationships
 
-The API supports full CRUD operations and is documented via Swagger UI at `/swagger-ui.html` (enabled in `dev` profile).
+### Book
 
-### Books
+- `id`, `title`, `isbn`, `publicationDate`, `pageCount`
+- Belongs to one `Publisher`
+- Soft delete via `deletedAt` timestamp (`null` = active)
+- `createdAt`, `updatedAt` managed by Hibernate via DB timestamps
 
-| Method | Path              | Description                           |
-|:-------|:------------------|:--------------------------------------|
-| GET    | `/api/books`      | Paginated catalog (sort by date desc) |
-| GET    | `/api/books/{id}` | Full book detail                      |
-| POST   | `/api/books`      | Create a new book                     |
-| PUT    | `/api/books/{id}` | Update existing book                  |
-| DELETE | `/api/books/{id}` | Soft-delete book                      |
+### Author
 
-### Authors
+- `id`, `firstName`, `lastName`, `bio`
+- Soft delete via `deletedAt` timestamp
 
-| Method | Path                      | Description                        |
-|:-------|:--------------------------|:-----------------------------------|
-| GET    | `/api/authors`            | Paginated list (sort by last name) |
-| GET    | `/api/authors/{id}`       | Author detail                      |
-| GET    | `/api/authors/{id}/books` | List of books by this author       |
-| POST   | `/api/authors`            | Create a new author                |
-| PUT    | `/api/authors/{id}`       | Update author details              |
-| DELETE | `/api/authors/{id}`       | Soft-delete author                 |
+### Publisher
 
-### Genres & Publishers
+- `id`, `name`
+- Soft delete via `deletedAt` timestamp
 
-| Method | Path                   | Description                        |
-|:-------|:-----------------------|:-----------------------------------|
-| GET    | `/api/genres`          | List all genres                    |
-| GET    | `/api/publishers`      | List all non-deleted publishers    |
-| POST   | `/api/genres`          | Create a genre (unique name check) |
-| DELETE | `/api/publishers/{id}` | Soft-delete publisher              |
+### Genre
+
+- `id`, `name` (unique)
+- No soft delete
+
+### Relationships
+
+- `Book ↔ Author`: Many-to-Many via `book_authors` join table (Book is the owning side)
+- `Book ↔ Genre`: Many-to-Many via `book_genres` join table (Book is the owning side)
+- `Book → Publisher`: Many-to-One
 
 ---
 
-## UI Routes
+## Routes & Endpoints
 
-### Books (`/books`)
+### REST API (`/api`)
 
-| Method | Path                 | Description            |
-|:-------|:---------------------|:-----------------------|
-| GET    | `/books`             | Paginated book catalog |
-| GET    | `/books/{id}`        | Book detail page       |
-| GET    | `/books/new`         | Add book form          |
-| POST   | `/books/new`         | Submit new book        |
-| POST   | `/books/{id}/delete` | Soft delete a book     |
+The API is documented via Swagger UI at `/swagger-ui.html` (enabled only in `dev` profile).
+
+| Method   | Path                      | Description              |
+|:---------|:--------------------------|:-------------------------|
+| `GET`    | `/api/books`              | Paginated catalog        |
+| `GET`    | `/api/authors`            | Paginated authors list   |
+| `GET`    | `/api/authors/{id}/books` | Books by specific author |
+| `POST`   | `/api/genres`             | Create new genre         |
+| `DELETE` | `/api/publishers/{id}`    | Soft-delete publisher    |
+
+### UI Routes
+
+| Method | Path          | Description                        |
+|:-------|:--------------|:-----------------------------------|
+| `GET`  | `/`           | Home page — recent books and stats |
+| `GET`  | `/books`      | Paginated book catalog             |
+| `GET`  | `/books/{id}` | Book detail page                   |
+| `POST` | `/books/new`  | Submit new book                    |
+| `GET`  | `/authors`    | Paginated author index             |
 
 ---
 
-## Soft Delete
+## DTOs and Projections
 
-Entities (Books, Authors, Publishers) are never hard deleted. Every query filters by `deletedAt IS NULL`. Accessing a
-deleted or missing entity throws `EntityNotFoundException`, handled globally by `GlobalExceptionHandler`.
+### Request DTOs
+
+- `BookCreateRequest` — `title`, `isbn`, `publisherId`, `publicationDate`, `pageCount`, `authorIds`, `genreIds`
+- `AuthorRequest` — `firstName`, `lastName`, `bio`
+- `PublisherRequest` — `name`
+- `GenreRequest` — `name`
+
+### Projection Interfaces (read side)
+
+- `BookCatalogItem` — `id`, `title`, `isbn`, `pageCount`, `publicationDate`, `genres`
+- `BookDetailProjection` — full book detail including `publisher`, `authors`, `genres`
+- `BookCardProjection` — `id`, `title`, `publicationDate` (home page cards)
+- `AuthorResponse` — `id`, `firstName`, `lastName`, `bio`
+- `AuthorBookItem` — `id`, `title`, `publicationDate`, `genres`
+- `PublisherResponse` — `id`, `name`
+- `GenreResponse` — `id`, `name`
+
+---
+
+## Database Migrations (Flyway)
+
+Files located in `src/main/resources/db/migration/`:
+
+| File                | Description                                             |
+|:--------------------|:--------------------------------------------------------|
+| `V1__init.sql`      | Schema: publishers, authors, genres, books, join tables |
+| `V2__seed_data.sql` | Seed data: publishers, authors, books, genres           |
 
 ---
 
 ## Templates (KTE)
 
-Server-side rendering using the Kotlin version of JTE (`.kte` files) located in `src/main/kte/`. The Maven build is
-configured to look for source templates specifically in the `src/main/kte` directory.
+Server-side rendering using JTE with Kotlin (`.kte` files) in `src/main/kte/`.
+
+| Template           | Route                            |
+|:-------------------|:---------------------------------|
+| `layout.kte`       | Shared layout                    |
+| `books/index.kte`  | `/books`                         |
+| `books/form.kte`   | `/books/new`, `/books/{id}/edit` |
+| `authors/show.kte` | `/authors/{id}`                  |
 
 ---
 
 ## Logging
 
-Configured via `logback-spring.xml`:
+Configured via `logback-spring.xml` with Spring profiles:
 
-* **dev:** `INFO` root, `DEBUG` SQL + bindings enabled.
-* **prod:** `WARN` root, SQL logging disabled, Swagger UI/API-docs disabled.
+| Profile | Root Level | SQL Logging                               |
+|:--------|:-----------|:------------------------------------------|
+| `dev`   | INFO       | DEBUG + TRACE (Hibernate SQL + bindings)  |
+| `prod`  | WARN       | Off (Swagger UI & API Docs also disabled) |
+
+---
+
+## Running the Application
+
+### Development (local)
+
+Make sure PostgreSQL is running locally on port `5432`, then:
+
+```bash
+./mvnw spring-boot:run -Dspring-boot.run.profiles=dev
+```
+
+### Production (Docker)
+
+```bash
+docker-compose up --build
+```
+
+This builds the app image (multi-stage Dockerfile), starts PostgreSQL, waits for health checks, and runs Flyway
+migrations automatically.
 
 ---
 
 ## Potential Future Improvements
 
-* [x] Author CRUD — create, edit, delete authors via UI
-* [x] Book edit and soft delete via UI
-* [x] Input validation with `@Valid` and proper error responses
-* [x] Global exception handler with `@ControllerAdvice`
-* [x] Swagger / OpenAPI documentation
-* [ ] Review system — users can submit 1–5-star ratings and written reviews
-* [ ] User authentication with Spring Security
-* [ ] Book cover image upload
-* [ ] Advanced filtering — by date range, page count, multiple genres
-* [ ] Unit and integration tests with JUnit and Testcontainers
+- [x] Author & Book CRUD via UI
+- [x] REST API Layer with OpenAPI
+- [ ] Review system — ratings and written reviews
+- [ ] User authentication with Spring Security
+- [ ] Book cover image upload
+- [ ] Unit and integration tests with Testcontainers
+
+## Author
+
+**Giorgi Chapidze**
