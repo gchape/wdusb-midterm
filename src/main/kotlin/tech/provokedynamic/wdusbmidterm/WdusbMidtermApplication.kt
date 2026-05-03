@@ -8,6 +8,10 @@ import org.springframework.boot.autoconfigure.task.TaskSchedulingAutoConfigurati
 import org.springframework.boot.persistence.autoconfigure.EntityScan
 import org.springframework.boot.runApplication
 import org.springframework.context.annotation.ComponentScan
+import org.springframework.http.CacheControl
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
+import java.util.concurrent.TimeUnit
 
 @SpringBootConfiguration(proxyBeanMethods = false)
 @EnableAutoConfiguration(
@@ -22,10 +26,21 @@ import org.springframework.context.annotation.ComponentScan
         "tech.provokedynamic.wdusbmidterm.service",
         "tech.provokedynamic.wdusbmidterm.repository",
         "tech.provokedynamic.wdusbmidterm.controller",
+        "tech.provokedynamic.wdusbmidterm.exception",
     ]
 )
 @EntityScan("tech.provokedynamic.wdusbmidterm.entity")
-class WdusbMidtermApplication
+class WdusbMidtermApplication : WebMvcConfigurer {
+    override fun addResourceHandlers(registry: ResourceHandlerRegistry) {
+        registry.addResourceHandler("/fonts/**")
+            .addResourceLocations("classpath:/static/fonts/")
+            .setCacheControl(CacheControl.maxAge(365, TimeUnit.DAYS).cachePublic())
+
+        registry.addResourceHandler("/css/**")
+            .addResourceLocations("classpath:/static/css/")
+            .setCacheControl(CacheControl.maxAge(365, TimeUnit.DAYS).cachePublic())
+    }
+}
 
 fun main(args: Array<String>) {
     runApplication<WdusbMidtermApplication>(*args)
