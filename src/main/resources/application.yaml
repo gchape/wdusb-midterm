@@ -12,6 +12,11 @@ spring:
   jpa:
     open-in-view: false
 
+  cache:
+    type: caffeine
+    caffeine:
+      spec: maximumSize=500,expireAfterWrite=10m
+
 server:
   compression:
     enabled: true
@@ -21,9 +26,13 @@ server:
       - application/javascript
     min-response-size: 1024
 
+
 springdoc:
   packages-to-scan: tech.provokedynamic.wdusbmidterm.controller
   paths-to-match: /api/**
+  remove-broken-reference-definitions: false
+  pre-loading-enabled: false
+  default-produces-media-type: application/json
 
 gg:
   jte:
@@ -64,6 +73,13 @@ spring:
     password: ${POSTGRES_PASSWORD}
     driver-class-name: org.postgresql.Driver
     url: ${POSTGRES_URL}
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+      connection-timeout: 20000
+      idle-timeout: 300000
+      max-lifetime: 1200000
+      pool-name: LibSysPool
 
 springdoc:
   api-docs:
