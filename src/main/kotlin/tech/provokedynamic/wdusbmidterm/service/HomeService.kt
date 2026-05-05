@@ -1,23 +1,17 @@
 package tech.provokedynamic.wdusbmidterm.service
 
 import org.springframework.stereotype.Service
-import org.springframework.transaction.annotation.Transactional
 import tech.provokedynamic.wdusbmidterm.dto.response.BookCardResponse
-import tech.provokedynamic.wdusbmidterm.repository.AuthorRepository
-import tech.provokedynamic.wdusbmidterm.repository.BookRepository
 
 @Service
 class HomeService(
-    private val bookRepository: BookRepository,
-    private val authorRepository: AuthorRepository
+    private val bookService: BookService,
+    private val authorService: AuthorService,
 ) {
-    @Transactional(readOnly = true)
     fun getRecentBooks(): List<BookCardResponse> =
-        bookRepository.findTop6ByDeletedAtNullOrderByUpdatedAtDesc()
+        bookService.getRecentBooks()
 
-    @Transactional(readOnly = true)
-    fun getTotalBooks(): Long = bookRepository.countByDeletedAtNull()
+    fun getTotalBooks(): Long = bookService.getTotalBooks()
 
-    @Transactional(readOnly = true)
-    fun getTotalAuthors(): Long = authorRepository.countByDeletedAtNull()
+    fun getTotalAuthors(): Long = authorService.getTotalAuthors()
 }

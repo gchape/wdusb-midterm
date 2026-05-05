@@ -32,7 +32,7 @@ class BookService(
 
     @Cacheable("books:paged", key = "#pageable.pageNumber + ':' + #pageable.pageSize", unless = "#result.isEmpty()")
     @Transactional(readOnly = true)
-    fun getCatalog(pageable: Pageable): Page<BookCatalogResponse> =
+    fun getBooks(pageable: Pageable): Page<BookCatalogResponse> =
         bookRepository.findAllByDeletedAtNull(pageable)
 
     @Cacheable("books:single", key = "#id")
@@ -48,7 +48,7 @@ class BookService(
 
     @Cacheable("books:count", key = "'total'")
     @Transactional(readOnly = true)
-    fun countBooks(): Long = bookRepository.countByDeletedAtNull()
+    fun getTotalBooks(): Long = bookRepository.countByDeletedAtNull()
 
     @Caching(
         evict = [
@@ -115,11 +115,14 @@ class BookService(
         ]
     )
     @Transactional
-    fun softDeleteBook(id: Long) {
+    fun deleteBook(id: Long) {
         val book = bookRepository.findById(id)
             .orElseThrow { EntityNotFoundException("Book $id not found") }
+
         book.deletedAt?.let { throw EntityDeletedException("Book $id is already deleted") }
+
         book.deletedAt = Instant.now()
+
         bookRepository.save(book)
     }
 }

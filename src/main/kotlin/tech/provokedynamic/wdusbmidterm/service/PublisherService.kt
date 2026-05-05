@@ -65,7 +65,7 @@ class PublisherService(private val publisherRepository: PublisherRepository) {
         ]
     )
     @Transactional
-    fun softDeletePublisher(id: Long) {
+    fun deletePublisher(id: Long) {
         val publisher = publisherRepository.findByIdAndDeletedAtNull(id)
             ?: throw EntityNotFoundException("Publisher $id not found")
 

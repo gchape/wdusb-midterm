@@ -42,7 +42,7 @@ class AuthorService(
             ?: throw EntityNotFoundException("Author $id not found")
 
     @Transactional(readOnly = true)
-    fun getBooksForAuthor(authorId: Long): List<AuthorBookResponse> {
+    fun getAuthorBooks(authorId: Long): List<AuthorBookResponse> {
         authorRepository.findByIdAndDeletedAtNull(authorId)
             ?: throw EntityNotFoundException("Author $authorId not found")
         return bookRepository.findAllByAuthorIdAndDeletedAtNull(authorId)
@@ -50,7 +50,7 @@ class AuthorService(
 
     @Cacheable("authors:count", key = "'total'")
     @Transactional(readOnly = true)
-    fun countAuthors(): Long = authorRepository.countByDeletedAtNull()
+    fun getTotalAuthors(): Long = authorRepository.countByDeletedAtNull()
 
     @Caching(
         evict = [
@@ -104,7 +104,7 @@ class AuthorService(
         ]
     )
     @Transactional
-    fun softDeleteAuthor(id: Long) {
+    fun deleteAuthor(id: Long) {
         val author = authorRepository.findById(id)
             .orElseThrow { EntityNotFoundException("Author $id not found") }
 
