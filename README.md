@@ -24,6 +24,7 @@ The application follows a layered architecture:
 - All write operations are `@Transactional`.
 - Read operations use `@Transactional(readOnly = true)`.
 - Duplicate checks throw typed domain exceptions before persisting.
+- `@Cacheable` on all read methods; `@CacheEvict` via `@Caching` on all mutating methods.
 
 ### Repository Layer
 
@@ -31,6 +32,14 @@ The application follows a layered architecture:
 - Derived query methods for filtered lookups.
 - `@EntityGraph` used to avoid N+1 on association fetching.
 - Returns Spring Data projection interfaces directly — no manual mapping.
+- `@CachePut` on all query methods to populate cache on every DB read.
+
+### Cache Layer
+
+- Spring Cache with **Caffeine** as the cache provider.
+- Cache names follow the `entity:concern` convention (e.g. `authors:single`, `books:paged`).
+- Repository methods use `@CachePut` to always write through to cache.
+- Service methods use `@Cacheable` to serve from cache and `@CacheEvict` to invalidate on writes.
 
 ### Exception Layer
 
@@ -49,18 +58,19 @@ The application follows a layered architecture:
 │   │   ├── controller/
 │   │   │   ├── api/             # REST Endpoints (JSON)
 │   │   │   └── ...              # View Controllers (KTE)
-│   │   ├── entity/              # JPA Entities (Book, Author, etc.)
+│   │   ├── dto/
+│   │   │   ├── request/         # Request payloads
+│   │   │   └── response/        # Response interfaces (projections)
+│   │   ├── entity/              # JPA Entities + toResponse() extension functions
 │   │   ├── exception/           # Custom Errors & Global Handler
 │   │   ├── model/
-│   │   │   ├── dto/             # Request payloads
-│   │   │   ├── projection/      # Read-only API/UI interfaces
 │   │   │   └── view/            # UI-specific ViewModels
 │   │   ├── repository/          # Spring Data JPA Repositories
 │   │   └── service/             # Business Logic & Transactions
 │   ├── kte/                     # KTE Templates (.kte)
 │   └── resources/
 │       ├── db/migration/        # Flyway SQL scripts
-│       ├── static/              # CSS & Fonts (Inter)
+│       ├── static/              # CSS
 │       └── application.yaml     # App configuration
 ├── docker-compose.yaml          # Orchestration
 └── pom.xml                      # KTE source set: src/main/kte
@@ -80,6 +90,7 @@ The application follows a layered architecture:
 | **Hibernate**           | ORM                                                 |
 | **PostgreSQL**          | Database                                            |
 | **Flyway**              | Schema migrations                                   |
+| **Caffeine**            | In-process cache provider                           |
 | **KTE**                 | Server-side template engine (Kotlin version of JTE) |
 | **Logback**             | Logging with Spring profiles                        |
 | **Docker**              | Containerization                                    |
@@ -146,22 +157,47 @@ The API is documented via Swagger UI at `/swagger-ui.html` (enabled only in `dev
 
 ## DTOs and Projections
 
-### Request DTOs
+### Request DTOs (`dto/request`)
 
-- `BookCreateRequest` — `title`, `isbn`, `publisherId`, `publicationDate`, `pageCount`, `authorIds`, `genreIds`
+- `BookRequest` — `title`, `isbn`, `publisherId`, `publicationDate`, `pageCount`, `authorIds`, `genreIds`
 - `AuthorRequest` — `firstName`, `lastName`, `bio`
 - `PublisherRequest` — `name`
 - `GenreRequest` — `name`
 
-### Projection Interfaces (read side)
+### Response Interfaces (`dto/response`)
 
-- `BookCatalogItem` — `id`, `title`, `isbn`, `pageCount`, `publicationDate`, `genres`
-- `BookDetailProjection` — full book detail including `publisher`, `authors`, `genres`
-- `BookCardProjection` — `id`, `title`, `publicationDate` (home page cards)
+- `BookCatalogResponse` — `id`, `title`, `isbn`, `pageCount`, `publicationDate`, `genres`
+- `BookDetailResponse` — full book detail including `publisher`, `authors`, `genres`
+- `BookCardResponse` — `id`, `title`, `publicationDate` (home page cards)
 - `AuthorResponse` — `id`, `firstName`, `lastName`, `bio`
-- `AuthorBookItem` — `id`, `title`, `publicationDate`, `genres`
+- `AuthorBookResponse` — `id`, `title`, `publicationDate`, `genres`
 - `PublisherResponse` — `id`, `name`
 - `GenreResponse` — `id`, `name`
+
+---
+
+## Caching
+
+Cache names follow the `entity:concern` naming convention:
+
+| Cache Name          | Key                   | Stores                      |
+|:--------------------|:----------------------|:----------------------------|
+| `authors:all`       | `'list'`              | `List<AuthorResponse>`      |
+| `authors:paged`     | `pageNumber:pageSize` | `Page<AuthorResponse>`      |
+| `authors:single`    | `authorId`            | `AuthorResponse`            |
+| `authors:count`     | `'total'`             | `Long`                      |
+| `authors:exists`    | `firstName:lastName`  | `Boolean`                   |
+| `books:paged`       | `pageNumber:pageSize` | `Page<BookCatalogResponse>` |
+| `books:single`      | `bookId`              | `BookDetailResponse`        |
+| `books:recent`      | `'list'`              | `List<BookCardResponse>`    |
+| `books:count`       | `'total'`             | `Long`                      |
+| `books:exists`      | `isbn`                | `Boolean`                   |
+| `genres:all`        | `'list'`              | `List<GenreResponse>`       |
+| `genres:single`     | `genreId`             | `GenreResponse`             |
+| `genres:exists`     | `name`                | `Boolean`                   |
+| `publishers:all`    | `'list'`              | `List<PublisherResponse>`   |
+| `publishers:single` | `publisherId`         | `PublisherResponse`         |
+| `publishers:exists` | `name`                | `Boolean`                   |
 
 ---
 
@@ -225,6 +261,7 @@ migrations automatically.
 
 - [x] Author & Book CRUD via UI
 - [x] REST API Layer with OpenAPI
+- [x] Caching with Caffeine
 - [ ] Review system — ratings and written reviews
 - [ ] User authentication with Spring Security
 - [ ] Book cover image upload
@@ -251,10 +288,12 @@ migrations automatically.
   correctly.
 - **Fixed Spring MVC binding errors on book form** — `pageCount` (`Short`) and `publicationDate` (`LocalDate`) fields
   threw `NullPointerException` before validation could run when submitted empty. Made these fields nullable in
-  `BookCreateRequest` with `null` defaults so Spring can bind gracefully and `@NotNull` messages display correctly.
+  `BookRequest` with `null` defaults so Spring can bind gracefully and `@NotNull` messages display correctly.
 - **Fixed multi-select binding** — `authorIds` and `genreIds` (`List<Long>`) defaulted to `emptyList()` to prevent
   `NullPointerException` when no options were selected.
 - **Enabled HTTP compression** in `application.yaml` for HTML, CSS, and JS responses.
+- **Added Caffeine caching** — all read paths served from in-process cache; write operations evict stale entries via
+  `@CacheEvict`.
 
 ## Author
 
