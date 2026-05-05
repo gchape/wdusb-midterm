@@ -27,7 +27,7 @@ class BookRestController(
         @RequestParam(defaultValue = "12") size: Int
     ): Page<BookCatalogResponse> {
         val pageRequest = PageRequest.of(page - 1, size, Sort.by(Sort.Direction.DESC, "publicationDate"))
-        return bookService.getCatalog(pageRequest)
+        return bookService.getBooks(pageRequest)
     }
 
     @GetMapping("/{id}")
@@ -52,5 +52,5 @@ class BookRestController(
     @DeleteMapping("/{id}")
     @Operation(summary = "Delete a book", description = "Soft-deletes a book by ID")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    fun delete(@PathVariable id: Long) = bookService.softDeleteBook(id)
+    fun delete(@PathVariable id: Long) = bookService.deleteBook(id)
 }

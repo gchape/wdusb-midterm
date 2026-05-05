@@ -38,7 +38,7 @@ class AuthorRestController(
     @GetMapping("/{id}/books")
     @Operation(summary = "Get books by author", description = "Returns all non-deleted books for a given author")
     fun getBooks(@PathVariable id: Long): List<AuthorBookResponse> =
-        authorService.getBooksForAuthor(id)
+        authorService.getAuthorBooks(id)
 
     @PostMapping
     @Operation(summary = "Create an author", description = "Creates a new author and returns it")
@@ -57,5 +57,5 @@ class AuthorRestController(
     @DeleteMapping("/{id}")
     @Operation(summary = "Delete an author", description = "Soft-deletes an author by ID")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    fun delete(@PathVariable id: Long) = authorService.softDeleteAuthor(id)
+    fun delete(@PathVariable id: Long) = authorService.deleteAuthor(id)
 }

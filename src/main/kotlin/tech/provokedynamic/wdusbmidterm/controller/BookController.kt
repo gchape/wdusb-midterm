@@ -30,7 +30,7 @@ class BookController(
         model: Model
     ): String {
         val pageRequest = PageRequest.of(page - 1, 12, Sort.by(Sort.Direction.DESC, "publicationDate"))
-        val booksPage = bookService.getCatalog(pageRequest)
+        val booksPage = bookService.getBooks(pageRequest)
 
         model.addAttribute(
             "vm", BookCatalogViewModel(
@@ -119,7 +119,7 @@ class BookController(
         @PathVariable id: Long,
         redirectAttributes: RedirectAttributes
     ): String {
-        bookService.softDeleteBook(id)
+        bookService.deleteBook(id)
         redirectAttributes.addFlashAttribute("flashSuccess", "Book was deleted.")
 
         return "redirect:/books"

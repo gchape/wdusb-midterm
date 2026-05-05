@@ -41,5 +41,5 @@ class PublisherRestController(
     @DeleteMapping("/{id}")
     @Operation(summary = "Delete a publisher", description = "Soft-deletes a publisher by ID")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    fun delete(@PathVariable id: Long) = publisherService.softDeletePublisher(id)
+    fun delete(@PathVariable id: Long) = publisherService.deletePublisher(id)
 }

@@ -41,7 +41,7 @@ class AuthorController(
     @GetMapping("/{id}")
     fun showAuthor(@PathVariable id: Long, model: Model): String {
         model.addAttribute("author", authorService.getAuthorById(id))
-        model.addAttribute("books", authorService.getBooksForAuthor(id))
+        model.addAttribute("books", authorService.getAuthorBooks(id))
 
         return "authors/show"
     }
@@ -105,7 +105,7 @@ class AuthorController(
         @PathVariable id: Long,
         redirectAttributes: RedirectAttributes
     ): String {
-        authorService.softDeleteAuthor(id)
+        authorService.deleteAuthor(id)
         redirectAttributes.addFlashAttribute("flashSuccess", "Author was deleted.")
 
         return "redirect:/authors"
