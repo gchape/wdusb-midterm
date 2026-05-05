@@ -1,4 +1,4 @@
-@import tech.provokedynamic.wdusbmidterm.model.projection.AuthorResponse
+@import tech.provokedynamic.wdusbmidterm.dto.response.AuthorResponse
 
 @param author: AuthorResponse? = null
 @param errors: Map<String, String> = emptyMap()

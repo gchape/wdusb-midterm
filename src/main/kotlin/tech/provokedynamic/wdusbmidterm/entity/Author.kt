@@ -4,6 +4,7 @@ import jakarta.persistence.*
 import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.Size
 import org.hibernate.annotations.SourceType
+import tech.provokedynamic.wdusbmidterm.dto.response.AuthorResponse
 import java.time.Instant
 
 @Entity
@@ -46,4 +47,15 @@ open class Author(
 
     @Column(name = "deleted_at")
     var deletedAt: Instant? = null
+}
+
+fun Author.toResponse(): AuthorResponse = object : AuthorResponse {
+    override val id: Long
+        get() = this@toResponse.id
+    override val firstName: String
+        get() = this@toResponse.firstName
+    override val lastName: String
+        get() = this@toResponse.lastName
+    override val bio: String?
+        get() = this@toResponse.bio
 }

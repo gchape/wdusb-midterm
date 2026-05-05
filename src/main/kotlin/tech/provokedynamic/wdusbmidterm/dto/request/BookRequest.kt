@@ -1,9 +1,9 @@
-package tech.provokedynamic.wdusbmidterm.model.dto
+package tech.provokedynamic.wdusbmidterm.dto.request
 
 import jakarta.validation.constraints.*
 import java.time.LocalDate
 
-data class BookCreateRequest(
+data class BookRequest(
     @field:NotBlank(message = "Title is required")
     @field:Size(max = 255, message = "Title cannot exceed 255 characters")
     val title: String,

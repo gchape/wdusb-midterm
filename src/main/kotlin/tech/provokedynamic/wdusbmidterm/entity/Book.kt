@@ -5,6 +5,10 @@ import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.Size
 import org.hibernate.annotations.OnDeleteAction
 import org.hibernate.annotations.SourceType
+import tech.provokedynamic.wdusbmidterm.dto.response.AuthorResponse
+import tech.provokedynamic.wdusbmidterm.dto.response.BookDetailResponse
+import tech.provokedynamic.wdusbmidterm.dto.response.GenreResponse
+import tech.provokedynamic.wdusbmidterm.dto.response.PublisherResponse
 import java.time.Instant
 import java.time.LocalDate
 
@@ -71,4 +75,23 @@ open class Book(
 
     @Column(name = "deleted_at")
     var deletedAt: Instant? = null
+}
+
+fun Book.toDetailResponse(): BookDetailResponse = object : BookDetailResponse {
+    override val id: Long
+        get() = this@toDetailResponse.id
+    override val isbn: String
+        get() = this@toDetailResponse.isbn
+    override val title: String
+        get() = this@toDetailResponse.title
+    override val pageCount: Short
+        get() = this@toDetailResponse.pageCount
+    override val publicationDate: LocalDate
+        get() = this@toDetailResponse.publicationDate
+    override val publisher: PublisherResponse
+        get() = this@toDetailResponse.publisher.toResponse()
+    override val authors: Set<AuthorResponse>
+        get() = this@toDetailResponse.authors.map { it.toResponse() }.toSet()
+    override val genres: Set<GenreResponse>
+        get() = this@toDetailResponse.genres.map { it.toResponse() }.toSet()
 }

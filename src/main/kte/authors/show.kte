@@ -1,8 +1,8 @@
-@import tech.provokedynamic.wdusbmidterm.model.projection.AuthorResponse
-@import tech.provokedynamic.wdusbmidterm.model.projection.AuthorBookItem
+@import tech.provokedynamic.wdusbmidterm.dto.response.AuthorResponse
+@import tech.provokedynamic.wdusbmidterm.dto.response.AuthorBookResponse
 
 @param author: AuthorResponse
-@param books: List<AuthorBookItem>
+@param books: List<AuthorBookResponse>
 @param flashSuccess: String? = null
 @param flashError: String? = null
 

@@ -1,6 +1,6 @@
-@import tech.provokedynamic.wdusbmidterm.model.projection.BookCardProjection
+@import tech.provokedynamic.wdusbmidterm.dto.response.BookCardResponse
 
-@param recentBooks: List<BookCardProjection>
+@param recentBooks: List<BookCardResponse>
 @param totalBooks: Long
 @param totalAuthors: Long
 

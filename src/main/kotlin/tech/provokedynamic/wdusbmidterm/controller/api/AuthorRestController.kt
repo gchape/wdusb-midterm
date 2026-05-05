@@ -9,9 +9,9 @@ import org.springframework.data.domain.Sort
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
-import tech.provokedynamic.wdusbmidterm.model.dto.AuthorRequest
-import tech.provokedynamic.wdusbmidterm.model.projection.AuthorBookItem
-import tech.provokedynamic.wdusbmidterm.model.projection.AuthorResponse
+import tech.provokedynamic.wdusbmidterm.dto.request.AuthorRequest
+import tech.provokedynamic.wdusbmidterm.dto.response.AuthorBookResponse
+import tech.provokedynamic.wdusbmidterm.dto.response.AuthorResponse
 import tech.provokedynamic.wdusbmidterm.service.AuthorService
 
 @RestController
@@ -37,7 +37,7 @@ class AuthorRestController(
 
     @GetMapping("/{id}/books")
     @Operation(summary = "Get books by author", description = "Returns all non-deleted books for a given author")
-    fun getBooks(@PathVariable id: Long): List<AuthorBookItem> =
+    fun getBooks(@PathVariable id: Long): List<AuthorBookResponse> =
         authorService.getBooksForAuthor(id)
 
     @PostMapping

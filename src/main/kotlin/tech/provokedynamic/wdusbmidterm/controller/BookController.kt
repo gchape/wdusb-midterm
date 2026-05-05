@@ -8,7 +8,7 @@ import org.springframework.ui.Model
 import org.springframework.validation.BindingResult
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.servlet.mvc.support.RedirectAttributes
-import tech.provokedynamic.wdusbmidterm.model.dto.BookCreateRequest
+import tech.provokedynamic.wdusbmidterm.dto.request.BookRequest
 import tech.provokedynamic.wdusbmidterm.model.view.BookCatalogViewModel
 import tech.provokedynamic.wdusbmidterm.model.view.toErrorMap
 import tech.provokedynamic.wdusbmidterm.service.AuthorService
@@ -61,7 +61,7 @@ class BookController(
 
     @PostMapping("/new")
     fun createBook(
-        @Valid @ModelAttribute request: BookCreateRequest,
+        @Valid @ModelAttribute request: BookRequest,
         bindingResult: BindingResult,
         model: Model,
         redirectAttributes: RedirectAttributes
@@ -94,7 +94,7 @@ class BookController(
     @PostMapping("/{id}/edit")
     fun updateBook(
         @PathVariable id: Long,
-        @Valid @ModelAttribute request: BookCreateRequest,
+        @Valid @ModelAttribute request: BookRequest,
         bindingResult: BindingResult,
         model: Model,
         redirectAttributes: RedirectAttributes

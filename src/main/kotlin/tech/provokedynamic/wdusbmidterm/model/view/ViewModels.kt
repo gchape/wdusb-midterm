@@ -1,11 +1,11 @@
 package tech.provokedynamic.wdusbmidterm.model.view
 
 import org.springframework.validation.BindingResult
-import tech.provokedynamic.wdusbmidterm.model.projection.AuthorResponse
-import tech.provokedynamic.wdusbmidterm.model.projection.BookCatalogItem
+import tech.provokedynamic.wdusbmidterm.dto.response.AuthorResponse
+import tech.provokedynamic.wdusbmidterm.dto.response.BookCatalogResponse
 
 data class BookCatalogViewModel(
-    val books: Set<BookCatalogItem>,
+    val books: Set<BookCatalogResponse>,
     val totalCount: Long,
     val currentPage: Int,
     val totalPages: Int,

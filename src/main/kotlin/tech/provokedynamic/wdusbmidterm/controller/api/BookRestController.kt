@@ -9,9 +9,9 @@ import org.springframework.data.domain.Sort
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
-import tech.provokedynamic.wdusbmidterm.model.dto.BookCreateRequest
-import tech.provokedynamic.wdusbmidterm.model.projection.BookCatalogItem
-import tech.provokedynamic.wdusbmidterm.model.projection.BookDetailProjection
+import tech.provokedynamic.wdusbmidterm.dto.request.BookRequest
+import tech.provokedynamic.wdusbmidterm.dto.response.BookCatalogResponse
+import tech.provokedynamic.wdusbmidterm.dto.response.BookDetailResponse
 import tech.provokedynamic.wdusbmidterm.service.BookService
 
 @RestController
@@ -25,19 +25,19 @@ class BookRestController(
     fun getAll(
         @RequestParam(defaultValue = "1") page: Int,
         @RequestParam(defaultValue = "12") size: Int
-    ): Page<BookCatalogItem> {
+    ): Page<BookCatalogResponse> {
         val pageRequest = PageRequest.of(page - 1, size, Sort.by(Sort.Direction.DESC, "publicationDate"))
         return bookService.getCatalog(pageRequest)
     }
 
     @GetMapping("/{id}")
     @Operation(summary = "Get book by ID", description = "Returns full detail for a single book")
-    fun getById(@PathVariable id: Long): BookDetailProjection =
+    fun getById(@PathVariable id: Long): BookDetailResponse =
         bookService.getBookById(id)
 
     @PostMapping
     @Operation(summary = "Create a book", description = "Creates a new book and returns its detail")
-    fun create(@Valid @RequestBody request: BookCreateRequest): ResponseEntity<BookDetailProjection> {
+    fun create(@Valid @RequestBody request: BookRequest): ResponseEntity<BookDetailResponse> {
         val saved = bookService.createBook(request)
         return ResponseEntity.status(HttpStatus.CREATED).body(saved)
     }
@@ -46,8 +46,8 @@ class BookRestController(
     @Operation(summary = "Update a book", description = "Updates an existing book by ID")
     fun update(
         @PathVariable id: Long,
-        @Valid @RequestBody request: BookCreateRequest
-    ): BookDetailProjection = bookService.updateBook(id, request)
+        @Valid @RequestBody request: BookRequest
+    ): BookDetailResponse = bookService.updateBook(id, request)
 
     @DeleteMapping("/{id}")
     @Operation(summary = "Delete a book", description = "Soft-deletes a book by ID")

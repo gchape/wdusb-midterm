@@ -6,8 +6,8 @@ import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
-import tech.provokedynamic.wdusbmidterm.model.dto.PublisherRequest
-import tech.provokedynamic.wdusbmidterm.model.projection.PublisherResponse
+import tech.provokedynamic.wdusbmidterm.dto.request.PublisherRequest
+import tech.provokedynamic.wdusbmidterm.dto.response.PublisherResponse
 import tech.provokedynamic.wdusbmidterm.service.PublisherService
 
 @RestController

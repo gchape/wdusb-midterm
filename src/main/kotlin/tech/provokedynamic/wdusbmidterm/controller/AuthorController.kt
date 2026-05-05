@@ -8,7 +8,7 @@ import org.springframework.ui.Model
 import org.springframework.validation.BindingResult
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.servlet.mvc.support.RedirectAttributes
-import tech.provokedynamic.wdusbmidterm.model.dto.AuthorRequest
+import tech.provokedynamic.wdusbmidterm.dto.request.AuthorRequest
 import tech.provokedynamic.wdusbmidterm.model.view.AuthorIndexViewModel
 import tech.provokedynamic.wdusbmidterm.model.view.toErrorMap
 import tech.provokedynamic.wdusbmidterm.service.AuthorService

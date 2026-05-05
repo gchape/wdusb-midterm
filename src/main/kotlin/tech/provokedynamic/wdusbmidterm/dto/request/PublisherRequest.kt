@@ -1,4 +1,4 @@
-package tech.provokedynamic.wdusbmidterm.model.dto
+package tech.provokedynamic.wdusbmidterm.dto.request
 
 import jakarta.validation.constraints.NotBlank
 

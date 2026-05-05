@@ -6,8 +6,8 @@ import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
-import tech.provokedynamic.wdusbmidterm.model.dto.GenreRequest
-import tech.provokedynamic.wdusbmidterm.model.projection.GenreResponse
+import tech.provokedynamic.wdusbmidterm.dto.request.GenreRequest
+import tech.provokedynamic.wdusbmidterm.dto.response.GenreResponse
 import tech.provokedynamic.wdusbmidterm.service.GenreService
 
 @RestController

@@ -1,6 +1,6 @@
-@import tech.provokedynamic.wdusbmidterm.model.projection.BookDetailProjection
+@import tech.provokedynamic.wdusbmidterm.dto.response.BookDetailResponse
 
-@param book: BookDetailProjection
+@param book: BookDetailResponse
 @param flashSuccess: String? = null
 @param flashError: String? = null
 
