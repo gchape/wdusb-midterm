@@ -1,10 +1,18 @@
 @import gg.jte.Content
+@import org.springframework.security.core.context.SecurityContextHolder
+@import org.springframework.security.core.authority.SimpleGrantedAuthority
 
 @param title: String = "Library Application"
 @param activeNav: String = ""
 @param flashSuccess: String? = null
 @param flashError: String? = null
+@param request: jakarta.servlet.http.HttpServletRequest? = null
 @param content: Content
+
+!{val auth = SecurityContextHolder.getContext().authentication}
+!{val isLoggedIn = auth != null && auth.isAuthenticated && auth.name != "anonymousUser"}
+!{val isAdmin = isLoggedIn && auth.authorities.contains(SimpleGrantedAuthority("ROLE_ADMIN"))}
+!{val username = if (isLoggedIn) auth.name else null}
 
 <!DOCTYPE html>
 <html lang="en">
@@ -13,7 +21,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="LibSys — browse and manage your book collection by author, genre, and more.">
     <title>LibSys | ${title}</title>
-
     <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
@@ -28,21 +35,35 @@
             <a href="/" class="nav-link ${if(activeNav == "home") "nav-link--active" else ""}">Home</a>
             <a href="/books" class="nav-link ${if(activeNav == "books") "nav-link--active" else ""}">Books</a>
             <a href="/authors" class="nav-link ${if(activeNav == "authors") "nav-link--active" else ""}">Authors</a>
+            @if(isAdmin)
+                <a href="/admin" class="nav-link nav-link--admin ${if(activeNav == "admin") "nav-link--active" else ""}">⚙ Admin</a>
+            @endif
         </nav>
+        <div class="header-auth">
+            @if(isLoggedIn)
+                <span class="nav-username">👤 ${username}${if(isAdmin) " (Admin)" else ""}</span>
+
+                !{val csrf = request?.getAttribute("_csrf") as? org.springframework.security.web.csrf.CsrfToken}
+                <form action="/logout" method="POST" class="inline-form">
+                    @if(csrf != null)
+                        <input type="hidden" name="${csrf.parameterName}" value="${csrf.token}">
+                    @endif
+                    <button type="submit" class="btn btn--ghost btn--sm">Log out</button>
+                </form>
+            @else
+                <a href="/login" class="btn btn--ghost btn--sm">Log in</a>
+                <a href="/register" class="btn btn--primary btn--sm">Register</a>
+            @endif
+        </div>
     </div>
 </header>
 
 <main class="main-content">
     @if(flashSuccess != null)
-        <div class="flash-bar flash-bar--success" role="alert">
-            ${flashSuccess}
-        </div>
+        <div class="flash-bar flash-bar--success" role="alert">${flashSuccess}</div>
     @endif
-
     @if(flashError != null)
-        <div class="flash-bar flash-bar--error" role="alert">
-            ${flashError}
-        </div>
+        <div class="flash-bar flash-bar--error" role="alert">${flashError}</div>
     @endif
 
     ${content}

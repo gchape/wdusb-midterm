@@ -2,8 +2,9 @@
 @param message: String? = null
 @param flashSuccess: String? = null
 @param flashError: String? = null
+@param request: jakarta.servlet.http.HttpServletRequest? = null
 
-@template.layout(title = "Error $status", activeNav = "", flashSuccess = flashSuccess, flashError = flashError, content = @`
+@template.layout(title = "Error $status", activeNav = "", flashSuccess = flashSuccess, flashError = flashError, request = request, content = @`
     <div class="error-page">
         <div class="error-content">
             <span class="error-icon">

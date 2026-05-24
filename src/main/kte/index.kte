@@ -1,10 +1,16 @@
 @import tech.provokedynamic.wdusbmidterm.dto.response.BookCardResponse
+@import org.springframework.security.core.context.SecurityContextHolder
+@import org.springframework.security.core.authority.SimpleGrantedAuthority
 
 @param recentBooks: List<BookCardResponse>
 @param totalBooks: Long
 @param totalAuthors: Long
+@param request: jakarta.servlet.http.HttpServletRequest
 
-@template.layout(title = "Home", activeNav = "home", content = @`
+!{val auth = SecurityContextHolder.getContext().authentication}
+!{val isAdmin = auth != null && auth.authorities.contains(SimpleGrantedAuthority("ROLE_ADMIN"))}
+
+@template.layout(title = "Home", activeNav = "home", request = request, content = @`
     <!-- ── Hero ── -->
     <section class="hero">
         <div class="hero-bg"></div>
@@ -50,7 +56,11 @@
             @if(recentBooks.isEmpty())
                 <div class="empty-state">
                     <span class="empty-icon">📭</span>
-                    <p>No books yet. <a href="/books/new">Add the first one!</a></p>
+                    @if(isAdmin)
+                        <p>No books yet. <a href="/books/new">Add the first one!</a></p>
+                    @else
+                        <p>No books yet.</p>
+                    @endif
                 </div>
             @else
                 <div class="book-grid">
