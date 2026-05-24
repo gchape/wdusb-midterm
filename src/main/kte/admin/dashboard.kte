@@ -4,8 +4,11 @@
 @param users: List<User>
 @param flashSuccess: String? = null
 @param flashError: String? = null
+@param request: jakarta.servlet.http.HttpServletRequest
 
-@template.layout(title = "Admin Dashboard", activeNav = "admin", flashSuccess = flashSuccess, flashError = flashError, content = @`
+!{val csrf = request.getAttribute("_csrf") as? org.springframework.security.web.csrf.CsrfToken}
+
+@template.layout(title = "Admin Dashboard", activeNav = "admin", flashSuccess = flashSuccess, flashError = flashError, request = request, content = @`
     <div class="container page-container">
         <div class="page-header">
             <div>
@@ -45,16 +48,25 @@
                         <td class="admin-actions">
                             @if(user.enabled)
                                 <form action="/admin/users/${user.id}/disable" method="POST" class="inline-form">
+                                    @if(csrf != null)
+                                        <input type="hidden" name="${csrf.parameterName}" value="${csrf.token}">
+                                    @endif
                                     <button type="submit" class="btn btn--danger btn--xs">Disable</button>
                                 </form>
                             @else
                                 <form action="/admin/users/${user.id}/enable" method="POST" class="inline-form">
+                                    @if(csrf != null)
+                                        <input type="hidden" name="${csrf.parameterName}" value="${csrf.token}">
+                                    @endif
                                     <button type="submit" class="btn btn--outline btn--xs">Enable</button>
                                 </form>
                             @endif
                             @if(user.role != Role.ADMIN)
                                 <form action="/admin/users/${user.id}/promote" method="POST" class="inline-form"
                                       onsubmit="return confirm('Promote ${user.username} to ADMIN?')">
+                                    @if(csrf != null)
+                                        <input type="hidden" name="${csrf.parameterName}" value="${csrf.token}">
+                                    @endif
                                     <button type="submit" class="btn btn--ghost btn--xs">→ Admin</button>
                                 </form>
                             @endif

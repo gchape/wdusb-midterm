@@ -1,20 +1,27 @@
 @import tech.provokedynamic.wdusbmidterm.dto.request.RegisterRequest
 
-@param request: RegisterRequest = RegisterRequest("", "", "")
+@param requestData: RegisterRequest = RegisterRequest("", "", "")
+@param request: jakarta.servlet.http.HttpServletRequest
 @param errors: Map<String, String> = emptyMap()
 
-@template.layout(title = "Register", activeNav = "", content = @`
+!{val csrf = request.getAttribute("_csrf") as? org.springframework.security.web.csrf.CsrfToken}
+
+@template.layout(title = "Register", activeNav = "", request = request, content = @`
     <div class="container auth-container">
         <div class="auth-card card">
             <h1 class="auth-title">Create account</h1>
             <p class="auth-subtitle">Join LibSys to start exploring</p>
 
             <form action="/register" method="POST" novalidate>
+                @if(csrf != null)
+                    <input type="hidden" name="${csrf.parameterName}" value="${csrf.token}">
+                @endif
+
                 <div class="form-group ${if(errors.containsKey("username")) "form-group--error" else ""}">
                     <label class="form-label" for="username">Username</label>
                     <input type="text" id="username" name="username" class="input"
                            autocomplete="username" autofocus required
-                           value="${request.username}" placeholder="choose-a-username">
+                           value="${requestData.username}" placeholder="choose-a-username">
                     @if(errors.containsKey("username"))
                         <span class="field-error">${errors["username"]}</span>
                     @endif

@@ -1,8 +1,10 @@
 @param loginError: String? = null
 @param logoutMessage: String? = null
 @param flashSuccess: String? = null
+@param request: jakarta.servlet.http.HttpServletRequest
+@param csrf: org.springframework.security.web.csrf.CsrfToken
 
-@template.layout(title = "Log In", activeNav = "", flashSuccess = flashSuccess, content = @`
+@template.layout(title = "Log In", activeNav = "", flashSuccess = flashSuccess, request = request, content = @`
     <div class="container auth-container">
         <div class="auth-card card">
             <h1 class="auth-title">Welcome back</h1>
@@ -26,6 +28,9 @@
                     <input type="password" id="password" name="password" class="input"
                            autocomplete="current-password" required placeholder="••••••••">
                 </div>
+
+                <input type="hidden" name="${csrf.parameterName}" value="${csrf.token}">
+
                 <button type="submit" class="btn btn--primary btn--full">Log In</button>
             </form>
 
