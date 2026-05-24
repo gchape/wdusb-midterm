@@ -1,14 +1,20 @@
 @import tech.provokedynamic.wdusbmidterm.dto.response.AuthorResponse
 @import tech.provokedynamic.wdusbmidterm.dto.response.AuthorBookResponse
+@import org.springframework.security.core.context.SecurityContextHolder
+@import org.springframework.security.core.authority.SimpleGrantedAuthority
 
 @param author: AuthorResponse
 @param books: List<AuthorBookResponse>
 @param flashSuccess: String? = null
 @param flashError: String? = null
+@param request: jakarta.servlet.http.HttpServletRequest
 
-@template.layout(title = "${author.firstName} ${author.lastName}", activeNav = "authors", flashSuccess = flashSuccess, flashError = flashError, content = @`
+!{val csrf = request.getAttribute("_csrf") as? org.springframework.security.web.csrf.CsrfToken}
+!{val auth = SecurityContextHolder.getContext().authentication}
+!{val isAdmin = auth != null && auth.authorities.contains(SimpleGrantedAuthority("ROLE_ADMIN"))}
+
+@template.layout(title = "${author.firstName} ${author.lastName}", activeNav = "authors", flashSuccess = flashSuccess, flashError = flashError, request = request, content = @`
     <div class="container page-container">
-        <!-- ── Breadcrumb ── -->
         <nav class="breadcrumb" aria-label="Breadcrumb">
             <a href="/" class="breadcrumb-link">Home</a>
             <span class="breadcrumb-sep">›</span>
@@ -18,22 +24,25 @@
         </nav>
 
         <div class="author-detail-layout">
-            <!-- ── Sidebar ── -->
             <aside class="author-detail-sidebar">
                 <div class="author-detail-avatar author-avatar-color-${(author.id % 6) + 1}">
                     ${author.firstName.substring(0, 1).uppercase()}${author.lastName.substring(0, 1).uppercase()}
                 </div>
                 <div class="author-stat-pill">${books.size} book${if(books.size != 1) "s" else ""}</div>
                 <div class="author-detail-actions">
-                    <a href="/authors/${author.id}/edit" class="btn btn--outline btn--full">Edit Author</a>
-                    <form action="/authors/${author.id}/delete" method="POST"
-                          onsubmit="return confirm('Delete ${author.firstName} ${author.lastName}? This cannot be undone.')">
-                        <button type="submit" class="btn btn--danger btn--full">Delete Author</button>
-                    </form>
+                    @if(isAdmin)
+                        <a href="/authors/${author.id}/edit" class="btn btn--outline btn--full">Edit Author</a>
+                        <form action="/authors/${author.id}/delete" method="POST"
+                              onsubmit="return confirm('Delete ${author.firstName} ${author.lastName}? This cannot be undone.')">
+                            @if(csrf != null)
+                                <input type="hidden" name="${csrf.parameterName}" value="${csrf.token}">
+                            @endif
+                            <button type="submit" class="btn btn--danger btn--full">Delete Author</button>
+                        </form>
+                    @endif
                     <a href="/authors" class="btn btn--ghost btn--full">All Authors</a>
                 </div>
             </aside>
-            <!-- ── Content ── -->
             <div class="author-detail-content">
                 <h1 class="detail-title">${author.firstName} ${author.lastName}</h1>
 
@@ -54,7 +63,11 @@
                     @if(books.isEmpty())
                         <div class="empty-state">
                             <span class="empty-icon">📚</span>
-                            <p>No books registered yet. <a href="/books/new">Add a book</a> to this author.</p>
+                            @if(isAdmin)
+                                <p>No books registered yet. <a href="/books/new">Add a book</a> to this author.</p>
+                            @else
+                                <p>No books registered yet.</p>
+                            @endif
                         </div>
                     @else
                         <div class="author-books-list">

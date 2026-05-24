@@ -2,12 +2,14 @@
 
 @param author: AuthorResponse? = null
 @param errors: Map<String, String> = emptyMap()
+@param request: jakarta.servlet.http.HttpServletRequest
 
 !{val isEdit = author != null}
 !{val actionUrl = if (isEdit) "/authors/${author?.id}/edit" else "/authors/add"}
 !{val pageTitle = if (isEdit) "Edit Author" else "Add New Author"}
+!{val csrf = request.getAttribute("_csrf") as? org.springframework.security.web.csrf.CsrfToken}
 
-@template.layout(title = pageTitle, activeNav = "authors", content = @`
+@template.layout(title = pageTitle, activeNav = "authors", request = request, content = @`
 
     <div class="container page-container">
 
@@ -37,9 +39,12 @@
 
             <div class="card form-card">
                 <form action="${actionUrl}" method="POST" novalidate>
+                    @if(csrf != null)
+                        <input type="hidden" name="${csrf.parameterName}" value="${csrf.token}">
+                    @endif
+
                     <div class="form-grid">
 
-                        <!-- First Name -->
                         <div class="form-group ${if(errors.containsKey("firstName")) "form-group--error" else ""}">
                             <label class="form-label" for="firstName">First Name <span class="required">*</span></label>
                             <input type="text" id="firstName" name="firstName" class="input"
@@ -49,7 +54,6 @@
                             @endif
                         </div>
 
-                        <!-- Last Name -->
                         <div class="form-group ${if(errors.containsKey("lastName")) "form-group--error" else ""}">
                             <label class="form-label" for="lastName">Last Name <span class="required">*</span></label>
                             <input type="text" id="lastName" name="lastName" class="input"
@@ -59,7 +63,6 @@
                             @endif
                         </div>
 
-                        <!-- Bio -->
                         <div class="form-group form-group--wide ${if(errors.containsKey("bio")) "form-group--error" else ""}">
                             <label class="form-label" for="bio">Biography</label>
                             <textarea id="bio" name="bio" class="input textarea" rows="5"
@@ -69,9 +72,7 @@
                             @endif
                         </div>
 
-                    </div><!-- /.form-grid -->
-
-                    <div class="form-footer">
+                    </div><div class="form-footer">
                         <button type="submit" class="btn btn--primary">
                             ${if(isEdit) "Save Changes" else "Add Author"}
                         </button>
@@ -81,6 +82,9 @@
                 @if(isEdit)
                     <form action="/authors/${author?.id}/delete" method="POST" class="inline-form"
                           onsubmit="return confirm('Delete this author? This cannot be undone.')">
+                        @if(csrf != null)
+                            <input type="hidden" name="${csrf.parameterName}" value="${csrf.token}">
+                        @endif
                         <button type="submit" class="btn btn--danger">Delete Author</button>
                     </form>
                 @endif

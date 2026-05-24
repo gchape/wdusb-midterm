@@ -8,12 +8,14 @@
 @param publishers: List<PublisherResponse>
 @param book: BookDetailResponse? = null
 @param errors: Map<String, String> = emptyMap()
+@param request: jakarta.servlet.http.HttpServletRequest
 
 !{val isEdit = book != null}
 !{val actionUrl = if (isEdit) "/books/${book?.id}/edit" else "/books/new"}
 !{val pageTitle = if (isEdit) "Edit Book" else "Add New Book"}
+!{val csrf = request.getAttribute("_csrf") as? org.springframework.security.web.csrf.CsrfToken}
 
-@template.layout(title = pageTitle, activeNav = "books", content = @`
+@template.layout(title = pageTitle, activeNav = "books", request = request, content = @`
 
     <div class="container page-container">
 
@@ -43,9 +45,12 @@
 
             <div class="card form-card">
                 <form action="${actionUrl}" method="POST" novalidate>
+                    @if(csrf != null)
+                        <input type="hidden" name="${csrf.parameterName}" value="${csrf.token}">
+                    @endif
+
                     <div class="form-grid">
 
-                        <!-- Title -->
                         <div class="form-group form-group--wide ${if(errors.containsKey("title")) "form-group--error" else ""}">
                             <label class="form-label" for="title">Title <span class="required">*</span></label>
                             <input type="text" id="title" name="title" class="input"
@@ -55,7 +60,6 @@
                             @endif
                         </div>
 
-                        <!-- ISBN -->
                         <div class="form-group ${if(errors.containsKey("isbn")) "form-group--error" else ""}">
                             <label class="form-label" for="isbn">ISBN <span class="required">*</span></label>
                             <input type="text" id="isbn" name="isbn" class="input"
@@ -65,7 +69,6 @@
                             @endif
                         </div>
 
-                        <!-- Page Count -->
                         <div class="form-group ${if(errors.containsKey("pageCount")) "form-group--error" else ""}">
                             <label class="form-label" for="pageCount">Page Count <span class="required">*</span></label>
                             <input type="number" id="pageCount" name="pageCount" class="input"
@@ -75,10 +78,8 @@
                             @endif
                         </div>
 
-                        <!-- Publication Date -->
                         <div class="form-group ${if(errors.containsKey("publicationDate")) "form-group--error" else ""}">
-                            <label class="form-label" for="publicationDate">Publication Date <span
-                                        class="required">*</span></label>
+                            <label class="form-label" for="publicationDate">Publication Date <span class="required">*</span></label>
                             <input type="date" id="publicationDate" name="publicationDate" class="input"
                                    value="${book?.publicationDate?.toString() ?: ""}" required>
                             @if(errors.containsKey("publicationDate"))
@@ -86,10 +87,8 @@
                             @endif
                         </div>
 
-                        <!-- Publisher -->
                         <div class="form-group ${if(errors.containsKey("publisherId")) "form-group--error" else ""}">
-                            <label class="form-label" for="publisherId">Publisher <span
-                                        class="required">*</span></label>
+                            <label class="form-label" for="publisherId">Publisher <span class="required">*</span></label>
                             <select id="publisherId" name="publisherId" class="input select-input" required>
                                 @if(book?.publisher == null)
                                     <option value="" disabled selected>Select publisher…</option>
@@ -109,15 +108,12 @@
                             @endif
                         </div>
 
-                        <!-- Authors (multi-select) -->
                         <div class="form-group form-group--wide ${if(errors.containsKey("authorIds")) "form-group--error" else ""}">
                             <label class="form-label" for="authorIds">Authors <span class="required">*</span></label>
-                            <select id="authorIds" name="authorIds" class="input select-input select-multi"
-                                    multiple required>
+                            <select id="authorIds" name="authorIds" class="input select-input select-multi" multiple required>
                                 @for(author in authors)
                                     @if(book?.authors != null && book.authors.any { it.id == author.id })
-                                        <option value="${author.id}"
-                                                selected>${author.firstName} ${author.lastName}</option>
+                                        <option value="${author.id}" selected>${author.firstName} ${author.lastName}</option>
                                     @else
                                         <option value="${author.id}">${author.firstName} ${author.lastName}</option>
                                     @endif
@@ -129,11 +125,9 @@
                             @endif
                         </div>
 
-                        <!-- Genres (multi-select) -->
                         <div class="form-group form-group--wide ${if(errors.containsKey("genreIds")) "form-group--error" else ""}">
                             <label class="form-label" for="genreIds">Genres <span class="required">*</span></label>
-                            <select id="genreIds" name="genreIds" class="input select-input select-multi"
-                                    multiple required>
+                            <select id="genreIds" name="genreIds" class="input select-input select-multi" multiple required>
                                 @for(genre in genres)
                                     @if(book?.genres != null && book.genres.any { it.id == genre.id })
                                         <option value="${genre.id}" selected>${genre.name}</option>
@@ -148,9 +142,7 @@
                             @endif
                         </div>
 
-                    </div><!-- /.form-grid -->
-
-                    <div class="form-footer">
+                    </div><div class="form-footer">
                         <button type="submit" class="btn btn--primary">
                             ${if(isEdit) "Save Changes" else "Create Book"}
                         </button>
@@ -160,6 +152,9 @@
                 @if(isEdit)
                     <form action="/books/${book?.id}/delete" method="POST" class="inline-form"
                           onsubmit="return confirm('Delete this book? This cannot be undone.')">
+                        @if(csrf != null)
+                            <input type="hidden" name="${csrf.parameterName}" value="${csrf.token}">
+                        @endif
                         <button type="submit" class="btn btn--danger">Delete Book</button>
                     </form>
                 @endif

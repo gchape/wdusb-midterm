@@ -1,12 +1,18 @@
 @import tech.provokedynamic.wdusbmidterm.dto.response.BookDetailResponse
+@import org.springframework.security.core.context.SecurityContextHolder
+@import org.springframework.security.core.authority.SimpleGrantedAuthority
 
 @param book: BookDetailResponse
 @param flashSuccess: String? = null
 @param flashError: String? = null
+@param request: jakarta.servlet.http.HttpServletRequest
 
-@template.layout(title = book.title, activeNav = "books", flashSuccess = flashSuccess, flashError = flashError, content = @`
+!{val csrf = request.getAttribute("_csrf") as? org.springframework.security.web.csrf.CsrfToken}
+!{val auth = SecurityContextHolder.getContext().authentication}
+!{val isAdmin = auth != null && auth.authorities.contains(SimpleGrantedAuthority("ROLE_ADMIN"))}
+
+@template.layout(title = book.title, activeNav = "books", flashSuccess = flashSuccess, flashError = flashError, request = request, content = @`
     <div class="container page-container">
-        <!-- ── Breadcrumb ── -->
         <nav class="breadcrumb" aria-label="Breadcrumb">
             <a href="/" class="breadcrumb-link">Home</a>
             <span class="breadcrumb-sep">›</span>
@@ -16,13 +22,10 @@
         </nav>
 
         <div class="detail-layout">
-            <!-- Cover -->
             <div class="detail-cover book-cover-color-${(book.id % 8) + 1}">
                 <span class="detail-cover-initial">${book.title.substring(0, 1).uppercase()}</span>
             </div>
-            <!-- Info -->
             <div class="detail-info">
-                <!-- Genre tags -->
                 @if(book.genres != null && !book.genres.isEmpty())
                     <div class="detail-meta-top">
                         @for(genre in book.genres)
@@ -42,7 +45,7 @@
                         @endfor
                     </p>
                 @endif
-                <!-- Attributes -->
+
                 <div class="detail-attrs">
                     <div class="attr">
                         <span class="attr-label">Published</span>
@@ -63,13 +66,18 @@
                         </div>
                     @endif
                 </div>
-                <!-- Actions -->
+
                 <div class="detail-actions">
-                    <a href="/books/${book.id}/edit" class="btn btn--primary">Edit Book</a>
-                    <form action="/books/${book.id}/delete" method="POST" class="inline-form"
-                          onsubmit="return confirm('Delete \'${book.title}\'? This cannot be undone.')">
-                        <button type="submit" class="btn btn--danger">Delete</button>
-                    </form>
+                    @if(isAdmin)
+                        <a href="/books/${book.id}/edit" class="btn btn--primary">Edit Book</a>
+                        <form action="/books/${book.id}/delete" method="POST" class="inline-form"
+                              onsubmit="return confirm('Delete \'${book.title}\'? This cannot be undone.')">
+                            @if(csrf != null)
+                                <input type="hidden" name="${csrf.parameterName}" value="${csrf.token}">
+                            @endif
+                            <button type="submit" class="btn btn--danger">Delete</button>
+                        </form>
+                    @endif
                     <a href="/books" class="btn btn--ghost">Back to Catalog</a>
                 </div>
             </div>
