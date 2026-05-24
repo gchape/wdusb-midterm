@@ -1,0 +1,43 @@
+@param loginError: String? = null
+@param logoutMessage: String? = null
+@param flashSuccess: String? = null
+
+@template.layout(title = "Log In", activeNav = "", flashSuccess = flashSuccess, content = @`
+    <div class="container auth-container">
+        <div class="auth-card card">
+            <h1 class="auth-title">Welcome back</h1>
+            <p class="auth-subtitle">Sign in to manage the library</p>
+
+            @if(loginError != null)
+                <div class="flash-bar flash-bar--error flash-bar--inline" role="alert">${loginError}</div>
+            @endif
+            @if(logoutMessage != null)
+                <div class="flash-bar flash-bar--success flash-bar--inline" role="alert">${logoutMessage}</div>
+            @endif
+
+            <form action="/login" method="POST" novalidate>
+                <div class="form-group">
+                    <label class="form-label" for="username">Username</label>
+                    <input type="text" id="username" name="username" class="input"
+                           autocomplete="username" autofocus required placeholder="your-username">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="password">Password</label>
+                    <input type="password" id="password" name="password" class="input"
+                           autocomplete="current-password" required placeholder="••••••••">
+                </div>
+                <button type="submit" class="btn btn--primary btn--full">Log In</button>
+            </form>
+
+            <p class="auth-footer">
+                Don't have an account? <a href="/register">Register</a>
+            </p>
+
+            <div class="auth-hint">
+                <strong>Demo credentials:</strong><br>
+                Admin: <code>admin</code> / <code>admin123</code><br>
+                User: <code>user</code> / <code>user123</code>
+            </div>
+        </div>
+    </div>
+`)

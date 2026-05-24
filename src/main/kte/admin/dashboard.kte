@@ -1,0 +1,68 @@
+@import tech.provokedynamic.wdusbmidterm.entity.User
+@import tech.provokedynamic.wdusbmidterm.entity.Role
+
+@param users: List<User>
+@param flashSuccess: String? = null
+@param flashError: String? = null
+
+@template.layout(title = "Admin Dashboard", activeNav = "admin", flashSuccess = flashSuccess, flashError = flashError, content = @`
+    <div class="container page-container">
+        <div class="page-header">
+            <div>
+                <h1 class="page-title">⚙ Admin Dashboard</h1>
+                <p class="page-subtitle">Manage registered users · ${users.size} total</p>
+            </div>
+        </div>
+
+        <div class="card">
+            <table class="admin-table">
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Username</th>
+                    <th>Role</th>
+                    <th>Status</th>
+                    <th>Joined</th>
+                    <th>Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                @for(user in users)
+                    <tr class="${if(!user.enabled) "admin-table-row--disabled" else ""}">
+                        <td>${user.id}</td>
+                        <td><strong>${user.username}</strong></td>
+                        <td>
+                            <span class="role-badge role-badge--${user.role.name.lowercase()}">${user.role.name}</span>
+                        </td>
+                        <td>
+                            @if(user.enabled)
+                                <span class="status-badge status-badge--active">Active</span>
+                            @else
+                                <span class="status-badge status-badge--disabled">Disabled</span>
+                            @endif
+                        </td>
+                        <td>${user.createdAt.toString().substring(0, 10)}</td>
+                        <td class="admin-actions">
+                            @if(user.enabled)
+                                <form action="/admin/users/${user.id}/disable" method="POST" class="inline-form">
+                                    <button type="submit" class="btn btn--danger btn--xs">Disable</button>
+                                </form>
+                            @else
+                                <form action="/admin/users/${user.id}/enable" method="POST" class="inline-form">
+                                    <button type="submit" class="btn btn--outline btn--xs">Enable</button>
+                                </form>
+                            @endif
+                            @if(user.role != Role.ADMIN)
+                                <form action="/admin/users/${user.id}/promote" method="POST" class="inline-form"
+                                      onsubmit="return confirm('Promote ${user.username} to ADMIN?')">
+                                    <button type="submit" class="btn btn--ghost btn--xs">→ Admin</button>
+                                </form>
+                            @endif
+                        </td>
+                    </tr>
+                @endfor
+                </tbody>
+            </table>
+        </div>
+    </div>
+`)

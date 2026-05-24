@@ -1,0 +1,49 @@
+@import tech.provokedynamic.wdusbmidterm.dto.request.RegisterRequest
+
+@param request: RegisterRequest = RegisterRequest("", "", "")
+@param errors: Map<String, String> = emptyMap()
+
+@template.layout(title = "Register", activeNav = "", content = @`
+    <div class="container auth-container">
+        <div class="auth-card card">
+            <h1 class="auth-title">Create account</h1>
+            <p class="auth-subtitle">Join LibSys to start exploring</p>
+
+            <form action="/register" method="POST" novalidate>
+                <div class="form-group ${if(errors.containsKey("username")) "form-group--error" else ""}">
+                    <label class="form-label" for="username">Username</label>
+                    <input type="text" id="username" name="username" class="input"
+                           autocomplete="username" autofocus required
+                           value="${request.username}" placeholder="choose-a-username">
+                    @if(errors.containsKey("username"))
+                        <span class="field-error">${errors["username"]}</span>
+                    @endif
+                </div>
+
+                <div class="form-group ${if(errors.containsKey("password")) "form-group--error" else ""}">
+                    <label class="form-label" for="password">Password</label>
+                    <input type="password" id="password" name="password" class="input"
+                           autocomplete="new-password" required placeholder="at least 6 characters">
+                    @if(errors.containsKey("password"))
+                        <span class="field-error">${errors["password"]}</span>
+                    @endif
+                </div>
+
+                <div class="form-group ${if(errors.containsKey("confirmPassword")) "form-group--error" else ""}">
+                    <label class="form-label" for="confirmPassword">Confirm Password</label>
+                    <input type="password" id="confirmPassword" name="confirmPassword" class="input"
+                           autocomplete="new-password" required placeholder="repeat your password">
+                    @if(errors.containsKey("confirmPassword"))
+                        <span class="field-error">${errors["confirmPassword"]}</span>
+                    @endif
+                </div>
+
+                <button type="submit" class="btn btn--primary btn--full">Create Account</button>
+            </form>
+
+            <p class="auth-footer">
+                Already have an account? <a href="/login">Log in</a>
+            </p>
+        </div>
+    </div>
+`)
