@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
 import tech.provokedynamic.wdusbmidterm.dto.request.PublisherRequest
 import tech.provokedynamic.wdusbmidterm.dto.response.PublisherResponse
@@ -25,6 +26,7 @@ class PublisherRestController(
     fun getById(@PathVariable id: Long): PublisherResponse = publisherService.getPublisherById(id)
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Create a publisher", description = "Creates a new publisher and returns it")
     fun create(@Valid @RequestBody request: PublisherRequest): ResponseEntity<PublisherResponse> {
         val saved = publisherService.createPublisher(request)
@@ -32,6 +34,7 @@ class PublisherRestController(
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Update a publisher", description = "Updates an existing publisher by ID")
     fun update(
         @PathVariable id: Long,
@@ -39,6 +42,7 @@ class PublisherRestController(
     ): PublisherResponse = publisherService.updatePublisher(id, request)
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Delete a publisher", description = "Soft-deletes a publisher by ID")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     fun delete(@PathVariable id: Long) = publisherService.deletePublisher(id)

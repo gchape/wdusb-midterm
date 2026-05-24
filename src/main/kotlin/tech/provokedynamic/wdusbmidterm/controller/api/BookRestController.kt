@@ -8,6 +8,7 @@ import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
 import tech.provokedynamic.wdusbmidterm.dto.request.BookRequest
 import tech.provokedynamic.wdusbmidterm.dto.response.BookCatalogResponse
@@ -36,6 +37,7 @@ class BookRestController(
         bookService.getBookById(id)
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Create a book", description = "Creates a new book and returns its detail")
     fun create(@Valid @RequestBody request: BookRequest): ResponseEntity<BookDetailResponse> {
         val saved = bookService.createBook(request)
@@ -43,6 +45,7 @@ class BookRestController(
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Update a book", description = "Updates an existing book by ID")
     fun update(
         @PathVariable id: Long,
@@ -50,6 +53,7 @@ class BookRestController(
     ): BookDetailResponse = bookService.updateBook(id, request)
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Delete a book", description = "Soft-deletes a book by ID")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     fun delete(@PathVariable id: Long) = bookService.deleteBook(id)

@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
 import tech.provokedynamic.wdusbmidterm.dto.request.GenreRequest
 import tech.provokedynamic.wdusbmidterm.dto.response.GenreResponse
@@ -25,6 +26,7 @@ class GenreRestController(
     fun getById(@PathVariable id: Long): GenreResponse = genreService.getGenreById(id)
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Create a genre", description = "Creates a new genre and returns it")
     fun create(@Valid @RequestBody request: GenreRequest): ResponseEntity<GenreResponse> {
         val saved = genreService.createGenre(request)
@@ -32,6 +34,7 @@ class GenreRestController(
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Update a genre", description = "Updates an existing genre by ID")
     fun update(
         @PathVariable id: Long,
@@ -39,6 +42,7 @@ class GenreRestController(
     ): GenreResponse = genreService.updateGenre(id, request)
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Delete a genre", description = "Deletes a genre by ID")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     fun delete(@PathVariable id: Long) = genreService.deleteGenre(id)

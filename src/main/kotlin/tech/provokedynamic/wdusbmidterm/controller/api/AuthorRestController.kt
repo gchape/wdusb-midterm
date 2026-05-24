@@ -8,6 +8,7 @@ import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
 import tech.provokedynamic.wdusbmidterm.dto.request.AuthorRequest
 import tech.provokedynamic.wdusbmidterm.dto.response.AuthorBookResponse
@@ -41,6 +42,7 @@ class AuthorRestController(
         authorService.getAuthorBooks(id)
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Create an author", description = "Creates a new author and returns it")
     fun create(@Valid @RequestBody request: AuthorRequest): ResponseEntity<AuthorResponse> {
         val saved = authorService.createAuthor(request)
@@ -48,6 +50,7 @@ class AuthorRestController(
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Update an author", description = "Updates an existing author by ID")
     fun update(
         @PathVariable id: Long,
@@ -55,6 +58,7 @@ class AuthorRestController(
     ): AuthorResponse = authorService.updateAuthor(id, request)
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Delete an author", description = "Soft-deletes an author by ID")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     fun delete(@PathVariable id: Long) = authorService.deleteAuthor(id)
