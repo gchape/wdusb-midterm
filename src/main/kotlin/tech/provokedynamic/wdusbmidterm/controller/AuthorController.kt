@@ -1,5 +1,6 @@
 package tech.provokedynamic.wdusbmidterm.controller
 
+import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort
@@ -21,8 +22,10 @@ class AuthorController(
     @GetMapping
     fun index(
         @RequestParam(defaultValue = "1") page: Int,
+        request: HttpServletRequest,
         model: Model
     ): String {
+        model.addAttribute("request", request)
         val pageRequest = PageRequest.of(page - 1, 18, Sort.by(Sort.Direction.ASC, "lastName"))
         val authorsPage = authorService.getAuthors(pageRequest)
 
