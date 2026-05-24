@@ -49,6 +49,80 @@ The application follows a layered architecture:
 
 ---
 
+## Security
+
+### Authentication
+
+- Form-based login at `/login` with username and password.
+- Logout at `/logout` (POST), redirects to `/login?logout=true`.
+- Passwords hashed with **BCryptPasswordEncoder** — never stored in plain text.
+- Session invalidated and `JSESSIONID` cookie deleted on logout.
+
+### Roles
+
+| Role    | Description                                      |
+|:--------|:-------------------------------------------------|
+| `USER`  | Can browse books and authors; cannot mutate data |
+| `ADMIN` | Full access including create, edit, and delete   |
+
+### Demo Credentials
+
+| Username | Password   | Role    |
+|:---------|:-----------|:--------|
+| `admin`  | `admin123` | `ADMIN` |
+| `user`   | `user123`  | `USER`  |
+
+### Public Endpoints (no login required)
+
+| Path                | Description             |
+|:--------------------|:------------------------|
+| `GET /`             | Home page               |
+| `GET /books`        | Book catalog            |
+| `GET /books/{id}`   | Book detail             |
+| `GET /authors`      | Author index            |
+| `GET /authors/{id}` | Author detail           |
+| `GET /login`        | Login page              |
+| `GET /register`     | Registration page       |
+| `GET /api/**`       | All REST read endpoints |
+| `/swagger-ui/**`    | API docs (dev only)     |
+
+### Authenticated Endpoints (login required)
+
+Any route not listed as public requires an authenticated session.
+
+### ADMIN-Only Endpoints
+
+| Path                             | Description              |
+|:---------------------------------|:-------------------------|
+| `GET/POST /books/new`            | Add a new book           |
+| `GET/POST /books/{id}/edit`      | Edit a book              |
+| `POST /books/{id}/delete`        | Delete a book            |
+| `GET/POST /authors/add`          | Add a new author         |
+| `GET/POST /authors/{id}/edit`    | Edit an author           |
+| `POST /authors/{id}/delete`      | Delete an author         |
+| `GET /admin`                     | Admin dashboard          |
+| `POST /admin/users/{id}/disable` | Disable a user           |
+| `POST /admin/users/{id}/enable`  | Enable a user            |
+| `POST /admin/users/{id}/promote` | Promote to ADMIN         |
+| `POST/PUT/DELETE /api/**`        | All REST write endpoints |
+
+### Method-Level Security
+
+`@EnableMethodSecurity(prePostEnabled = true)` is enabled in `SecurityConfig`.
+
+`@PreAuthorize("hasRole('ADMIN')")` is applied to:
+
+- `AdminController` (class level)
+- All mutating methods in `AuthorRestController`, `BookRestController`, `GenreRestController`, `PublisherRestController`
+
+### CSRF
+
+- **Enabled** for all MVC form endpoints — every form includes a hidden CSRF token.
+- **Disabled** for `/api/**` — the REST API is stateless and does not use session cookies,
+  so CSRF protection is not applicable.
+
+---
+
 ## Project Hierarchy
 
 ```text
@@ -66,6 +140,7 @@ The application follows a layered architecture:
 │   │   ├── model/
 │   │   │   └── view/            # UI-specific ViewModels
 │   │   ├── repository/          # Spring Data JPA Repositories
+│   │   ├── security/            # SecurityConfig
 │   │   └── service/             # Business Logic & Transactions
 │   ├── kte/                     # KTE Templates (.kte)
 │   └── resources/
@@ -85,6 +160,7 @@ The application follows a layered architecture:
 | **Kotlin**              | Primary language                                    |
 | **JDK 25**              | Runtime                                             |
 | **Spring Boot**         | Application framework                               |
+| **Spring Security**     | Authentication, authorization, CSRF protection      |
 | **SpringDoc / Swagger** | OpenAPI 3.0 API Documentation                       |
 | **Spring Data JPA**     | Repository layer                                    |
 | **Hibernate**           | ORM                                                 |
@@ -120,6 +196,12 @@ The application follows a layered architecture:
 
 - `id`, `name` (unique)
 - No soft delete
+
+### User
+
+- `id`, `username`, `passwordHash`, `role`, `enabled`, `createdAt`
+- Role is either `USER` or `ADMIN`
+- Passwords stored as BCrypt hashes
 
 ### Relationships
 
@@ -163,6 +245,7 @@ The API is documented via Swagger UI at `/swagger-ui.html` (enabled only in `dev
 - `AuthorRequest` — `firstName`, `lastName`, `bio`
 - `PublisherRequest` — `name`
 - `GenreRequest` — `name`
+- `RegisterRequest` — `username`, `password`, `confirmPassword`
 
 ### Response Interfaces (`dto/response`)
 
@@ -209,6 +292,7 @@ Files located in `src/main/resources/db/migration/`:
 |:--------------------|:--------------------------------------------------------|
 | `V1__init.sql`      | Schema: publishers, authors, genres, books, join tables |
 | `V2__seed_data.sql` | Seed data: publishers, authors, books, genres           |
+| `V3__users.sql`     | Schema: users table, sequence, seeded admin and user    |
 
 ---
 
@@ -216,12 +300,20 @@ Files located in `src/main/resources/db/migration/`:
 
 Server-side rendering using JTE with Kotlin (`.kte` files) in `src/main/kte/`.
 
-| Template           | Route                            |
-|:-------------------|:---------------------------------|
-| `layout.kte`       | Shared layout                    |
-| `books/index.kte`  | `/books`                         |
-| `books/form.kte`   | `/books/new`, `/books/{id}/edit` |
-| `authors/show.kte` | `/authors/{id}`                  |
+| Template              | Route                                |
+|:----------------------|:-------------------------------------|
+| `layout.kte`          | Shared layout                        |
+| `index.kte`           | `/`                                  |
+| `error.kte`           | Error pages                          |
+| `books/index.kte`     | `/books`                             |
+| `books/form.kte`      | `/books/new`, `/books/{id}/edit`     |
+| `books/show.kte`      | `/books/{id}`                        |
+| `authors/index.kte`   | `/authors`                           |
+| `authors/form.kte`    | `/authors/add`, `/authors/{id}/edit` |
+| `authors/show.kte`    | `/authors/{id}`                      |
+| `auth/login.kte`      | `/login`                             |
+| `auth/register.kte`   | `/register`                          |
+| `admin/dashboard.kte` | `/admin`                             |
 
 ---
 
@@ -262,10 +354,7 @@ migrations automatically.
 - [x] Author & Book CRUD via UI
 - [x] REST API Layer with OpenAPI
 - [x] Caching with Caffeine
-- [ ] Review system — ratings and written reviews
-- [ ] User authentication with Spring Security
-- [ ] Book cover image upload
-- [ ] Unit and integration tests with Testcontainers
+- [x] User authentication with Spring Security
 
 ## Performance & Optimization
 
