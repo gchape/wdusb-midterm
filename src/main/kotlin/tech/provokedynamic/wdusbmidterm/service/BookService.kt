@@ -1,5 +1,6 @@
 package tech.provokedynamic.wdusbmidterm.service
 
+import org.slf4j.LoggerFactory
 import org.springframework.cache.annotation.CacheEvict
 import org.springframework.cache.annotation.Cacheable
 import org.springframework.cache.annotation.Caching
@@ -30,6 +31,8 @@ class BookService(
     private val publisherRepository: PublisherRepository
 ) {
 
+    private val log = LoggerFactory.getLogger(BookService::class.java)
+
     @Cacheable("books:paged", key = "#pageable.pageNumber + ':' + #pageable.pageSize", unless = "#result.isEmpty()")
     @Transactional(readOnly = true)
     fun getBooks(pageable: Pageable): Page<BookCatalogResponse> =
@@ -59,6 +62,8 @@ class BookService(
     )
     @Transactional
     fun createBook(request: BookRequest): BookDetailResponse {
+        log.debug("Creating book with ISBN '{}'", request.isbn)
+
         if (bookRepository.existsByIsbnAndDeletedAtNull(request.isbn.trim()))
             throw EntityAlreadyExistsException("A book with ISBN '${request.isbn}' already exists")
 
@@ -75,7 +80,9 @@ class BookService(
         book.authors.addAll(authorRepository.findAllById(request.authorIds))
         book.genres.addAll(genreRepository.findAllById(request.genreIds))
 
-        return bookRepository.save(book).toDetailResponse()
+        val saved = bookRepository.save(book).toDetailResponse()
+        log.info("Book created: id={}, title='{}', isbn='{}'", saved.id, saved.title, saved.isbn)
+        return saved
     }
 
     @Caching(
@@ -87,6 +94,8 @@ class BookService(
     )
     @Transactional
     fun updateBook(id: Long, request: BookRequest): BookDetailResponse {
+        log.debug("Updating book id={}", id)
+
         val book = bookRepository.findById(id)
             .orElseThrow { EntityNotFoundException("Book $id not found") }
         book.deletedAt?.let { throw EntityDeletedException("Book $id has been deleted") }
@@ -103,7 +112,9 @@ class BookService(
         book.genres.clear()
         book.genres.addAll(genreRepository.findAllById(request.genreIds))
 
-        return bookRepository.save(book).toDetailResponse()
+        val saved = bookRepository.save(book).toDetailResponse()
+        log.info("Book updated: id={}, title='{}'", saved.id, saved.title)
+        return saved
     }
 
     @Caching(
@@ -116,13 +127,15 @@ class BookService(
     )
     @Transactional
     fun deleteBook(id: Long) {
+        log.debug("Soft-deleting book id={}", id)
+
         val book = bookRepository.findById(id)
             .orElseThrow { EntityNotFoundException("Book $id not found") }
 
         book.deletedAt?.let { throw EntityDeletedException("Book $id is already deleted") }
 
         book.deletedAt = Instant.now()
-
         bookRepository.save(book)
+        log.info("Book soft-deleted: id={}", id)
     }
 }

@@ -34,3 +34,6 @@ build/
 
 ### jte ###
 /jte-classes/
+
+### Logs ###
+logs/

@@ -1,71 +1,65 @@
 package tech.provokedynamic.wdusbmidterm.exception
 
+import org.slf4j.LoggerFactory
 import org.springframework.context.MessageSource
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
-import org.springframework.ui.Model
 import org.springframework.web.bind.MethodArgumentNotValidException
-import org.springframework.web.bind.annotation.ControllerAdvice
 import org.springframework.web.bind.annotation.ExceptionHandler
+import org.springframework.web.bind.annotation.RestControllerAdvice
 import org.springframework.web.servlet.resource.NoResourceFoundException
 import tech.provokedynamic.wdusbmidterm.dto.response.ErrorResponse
 import java.util.Locale
 
-@ControllerAdvice
+@RestControllerAdvice
 class GlobalExceptionHandler(
     private val messageSource: MessageSource
 ) {
 
-    private fun msg(key: String, locale: Locale, vararg args: Any): String =
-        messageSource.getMessage(key, args.ifEmpty { null }, key, locale)!!
+    private val log = LoggerFactory.getLogger(GlobalExceptionHandler::class.java)
 
-    private fun respond(
-        status: HttpStatus,
-        error: String,
-        message: String,
-        model: Model?,
-        fields: Map<String, String>? = null
-    ): Any = if (model != null) {
-        model.addAttribute("status", status.value())
-        model.addAttribute("message", message)
-        "error"
-    } else {
-        ResponseEntity.status(status)
-            .body(ErrorResponse(status.value(), error, message, fields))
-    }
+    private fun msg(key: String, locale: Locale): String =
+        messageSource.getMessage(key, null, key, locale)!!
+
+    private fun error(status: HttpStatus, error: String, message: String, fields: Map<String, String>? = null) =
+        ResponseEntity.status(status).body(ErrorResponse(status.value(), error, message, fields))
 
     @ExceptionHandler(EntityNotFoundException::class)
-    fun handleNotFound(locale: Locale, model: Model?) =
-        respond(HttpStatus.NOT_FOUND, "Not Found", msg("error.entity.notFound", locale), model)
+    fun handleNotFound(ex: EntityNotFoundException, locale: Locale): ResponseEntity<ErrorResponse> {
+        log.debug("Entity not found: {}", ex.message)
+        return error(HttpStatus.NOT_FOUND, "Not Found", msg("error.entity.notFound", locale))
+    }
 
     @ExceptionHandler(EntityDeletedException::class)
-    fun handleDeleted(locale: Locale, model: Model?) =
-        respond(HttpStatus.GONE, "Gone", msg("error.entity.deleted", locale), model)
+    fun handleDeleted(ex: EntityDeletedException, locale: Locale): ResponseEntity<ErrorResponse> {
+        log.debug("Entity deleted: {}", ex.message)
+        return error(HttpStatus.GONE, "Gone", msg("error.entity.deleted", locale))
+    }
 
     @ExceptionHandler(EntityAlreadyExistsException::class)
-    fun handleConflict(locale: Locale, model: Model?) =
-        respond(HttpStatus.CONFLICT, "Conflict", msg("error.entity.alreadyExists", locale), model)
+    fun handleConflict(ex: EntityAlreadyExistsException, locale: Locale): ResponseEntity<ErrorResponse> {
+        log.debug("Entity conflict: {}", ex.message)
+        return error(HttpStatus.CONFLICT, "Conflict", msg("error.entity.alreadyExists", locale))
+    }
 
     @ExceptionHandler(MethodArgumentNotValidException::class)
     fun handleValidation(ex: MethodArgumentNotValidException, locale: Locale): ResponseEntity<ErrorResponse> {
         val fields = ex.bindingResult.fieldErrors.associate { fe ->
             fe.field to (fe.defaultMessage ?: msg("error.validation", locale))
         }
-        @Suppress("UNCHECKED_CAST")
-        return respond(
-            HttpStatus.UNPROCESSABLE_ENTITY,
-            "Unprocessable Entity",
-            msg("error.validation", locale),
-            null,
-            fields
-        ) as ResponseEntity<ErrorResponse>
+        log.debug("Validation failed: {}", fields)
+        return error(HttpStatus.UNPROCESSABLE_ENTITY, "Unprocessable Entity", msg("error.validation", locale), fields)
     }
 
     @ExceptionHandler(NoResourceFoundException::class)
-    fun handleNoResourceFound(locale: Locale, model: Model?) =
-        respond(HttpStatus.NOT_FOUND, "Not Found", msg("error.notFound.page", locale), model)
+    fun handleNoResourceFound(ex: NoResourceFoundException, locale: Locale): ResponseEntity<ErrorResponse> {
+        log.debug("No resource found: {}", ex.message)
+        return error(HttpStatus.NOT_FOUND, "Not Found", msg("error.notFound.page", locale))
+    }
 
     @ExceptionHandler(Exception::class)
-    fun handleGeneral(locale: Locale, model: Model?) =
-        respond(HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error", msg("error.internal", locale), model)
+    fun handleGeneral(ex: Exception, locale: Locale): ResponseEntity<ErrorResponse> {
+        log.error("Unhandled exception: {}", ex.message, ex)
+        return error(HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error", msg("error.internal", locale))
+    }
 }

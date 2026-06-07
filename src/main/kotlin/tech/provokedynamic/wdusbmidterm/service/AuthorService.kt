@@ -1,5 +1,6 @@
 package tech.provokedynamic.wdusbmidterm.service
 
+import org.slf4j.LoggerFactory
 import org.springframework.cache.annotation.CacheEvict
 import org.springframework.cache.annotation.Cacheable
 import org.springframework.cache.annotation.Caching
@@ -24,6 +25,8 @@ class AuthorService(
     private val authorRepository: AuthorRepository,
     private val bookRepository: BookRepository
 ) {
+
+    private val log = LoggerFactory.getLogger(AuthorService::class.java)
 
     @Cacheable("authors:all", key = "'list'", unless = "#result.isEmpty()")
     @Transactional(readOnly = true)
@@ -61,6 +64,8 @@ class AuthorService(
     )
     @Transactional
     fun createAuthor(request: AuthorRequest): AuthorResponse {
+        log.debug("Creating author '{} {}'", request.firstName, request.lastName)
+
         if (authorRepository.existsByFirstNameIgnoreCaseAndLastNameIgnoreCaseAndDeletedAtNull(
                 request.firstName.trim(), request.lastName.trim()
             )
@@ -72,7 +77,9 @@ class AuthorService(
         )
         author.bio = request.bio?.trim()?.ifBlank { null }
 
-        return authorRepository.save(author).toResponse()
+        val saved = authorRepository.save(author).toResponse()
+        log.info("Author created: id={}, name='{} {}'", saved.id, saved.firstName, saved.lastName)
+        return saved
     }
 
     @Caching(
@@ -84,6 +91,8 @@ class AuthorService(
     )
     @Transactional
     fun updateAuthor(id: Long, request: AuthorRequest): AuthorResponse {
+        log.debug("Updating author id={}", id)
+
         val author = authorRepository.findById(id)
             .orElseThrow { EntityNotFoundException("Author $id not found") }
         author.deletedAt?.let { throw EntityDeletedException("Author $id has been deleted") }
@@ -92,7 +101,9 @@ class AuthorService(
         author.lastName = request.lastName.trim()
         author.bio = request.bio?.trim()?.ifBlank { null }
 
-        return authorRepository.save(author).toResponse()
+        val saved = authorRepository.save(author).toResponse()
+        log.info("Author updated: id={}, name='{} {}'", saved.id, saved.firstName, saved.lastName)
+        return saved
     }
 
     @Caching(
@@ -105,13 +116,15 @@ class AuthorService(
     )
     @Transactional
     fun deleteAuthor(id: Long) {
+        log.debug("Soft-deleting author id={}", id)
+
         val author = authorRepository.findById(id)
             .orElseThrow { EntityNotFoundException("Author $id not found") }
 
         author.deletedAt?.let { throw EntityDeletedException("Author $id is already deleted") }
 
         author.deletedAt = Instant.now()
-
         authorRepository.save(author)
+        log.info("Author soft-deleted: id={}", id)
     }
 }
