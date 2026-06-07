@@ -26,7 +26,6 @@ server:
       - application/javascript
     min-response-size: 1024
 
-
 springdoc:
   packages-to-scan: tech.provokedynamic.wdusbmidterm.controller
   paths-to-match: /api/**
@@ -39,6 +38,21 @@ gg:
     template-location: src/main/kte
     template-suffix: .kte
 
+app:
+  title: "Library System"
+  description: "A web-based catalog for managing books, authors, and publishers."
+  organization: "WDUSB University Library"
+  contact-email: "library@wdusb.edu"
+  default-page-size: 12
+  max-page-size: 100
+  features:
+    swagger-enabled: true
+    registration-enabled: true
+    catalog-public: true
+  maintenance:
+    cache-ttl-minutes: 10
+    show-sql-in-logs: false
+
 ---
 
 spring:
@@ -47,19 +61,45 @@ spring:
       on-profile: dev
 
   datasource:
-    username: postgres
-    password: postgres
-    driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://localhost:5432/postgres
+    url: jdbc:h2:mem:libsysdb;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
+  h2:
+    console:
+      enabled: true          # accessible at http://localhost:8080/h2-console
+      path: /h2-console
+      settings:
+        web-allow-others: false
 
   jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
     properties:
       hibernate.format_sql: true
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration/h2   # H2-compatible scripts
+    baseline-on-migrate: false
 
 gg:
   jte:
     development-mode: true
     expose-request-attributes: true
+
+app:
+  title: "Library System [DEV]"
+  description: "Development environment — data resets on every restart."
+  default-page-size: 6
+  max-page-size: 50
+  features:
+    swagger-enabled: true
+    registration-enabled: true
+    catalog-public: true
+  maintenance:
+    cache-ttl-minutes: 1
+    show-sql-in-logs: true
 
 ---
 
@@ -81,6 +121,13 @@ spring:
       max-lifetime: 1200000
       pool-name: LibSysPool
 
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration   # standard PostgreSQL scripts
+
 springdoc:
   api-docs:
     enabled: false
@@ -90,3 +137,16 @@ springdoc:
 gg:
   jte:
     usePrecompiledTemplates: true
+
+app:
+  title: "Library System"
+  description: "The university library catalog."
+  default-page-size: 12
+  max-page-size: 100
+  features:
+    swagger-enabled: false
+    registration-enabled: false
+    catalog-public: true
+  maintenance:
+    cache-ttl-minutes: 10
+    show-sql-in-logs: false

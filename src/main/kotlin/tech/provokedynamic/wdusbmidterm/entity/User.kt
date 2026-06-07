@@ -12,7 +12,7 @@ import jakarta.persistence.Table
 import jakarta.validation.constraints.Size
 import org.hibernate.annotations.SourceType
 import org.jetbrains.annotations.NotNull
-import tech.provokedynamic.wdusbmidterm.model.view.Role
+import tech.provokedynamic.wdusbmidterm.model.Role
 import java.time.Instant
 
 @Entity

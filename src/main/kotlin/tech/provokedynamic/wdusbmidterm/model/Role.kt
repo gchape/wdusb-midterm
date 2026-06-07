@@ -1,4 +1,4 @@
-package tech.provokedynamic.wdusbmidterm.model.view
+package tech.provokedynamic.wdusbmidterm.model
 
 enum class Role {
     USER,

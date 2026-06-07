@@ -1,5 +1,5 @@
 @import tech.provokedynamic.wdusbmidterm.entity.User
-@import tech.provokedynamic.wdusbmidterm.entity.Role
+@import tech.provokedynamic.wdusbmidterm.model.Role
 
 @param users: List<User>
 @param flashSuccess: String? = null

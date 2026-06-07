@@ -7,7 +7,7 @@ import org.springframework.transaction.annotation.Transactional
 import tech.provokedynamic.wdusbmidterm.dto.request.RegisterRequest
 import tech.provokedynamic.wdusbmidterm.entity.User
 import tech.provokedynamic.wdusbmidterm.exception.EntityAlreadyExistsException
-import tech.provokedynamic.wdusbmidterm.model.view.Role
+import tech.provokedynamic.wdusbmidterm.model.Role
 import tech.provokedynamic.wdusbmidterm.repository.UserRepository
 
 @Service

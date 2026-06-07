@@ -2,6 +2,7 @@ package tech.provokedynamic.wdusbmidterm
 
 import org.springframework.boot.SpringBootConfiguration
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
+import org.springframework.boot.context.properties.ConfigurationPropertiesScan
 import org.springframework.boot.persistence.autoconfigure.EntityScan
 import org.springframework.boot.runApplication
 import org.springframework.cache.annotation.EnableCaching
@@ -14,6 +15,7 @@ import java.util.concurrent.TimeUnit
 
 @SpringBootConfiguration(proxyBeanMethods = false)
 @EnableAutoConfiguration
+@ConfigurationPropertiesScan("tech.provokedynamic.wdusbmidterm.config")
 @EnableCaching(mode = AdviceMode.PROXY)
 @ComponentScan(
     basePackages = [
