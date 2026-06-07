@@ -4,29 +4,29 @@ import jakarta.validation.constraints.*
 import java.time.LocalDate
 
 data class BookRequest(
-    @field:NotBlank(message = "Title is required")
-    @field:Size(max = 255, message = "Title cannot exceed 255 characters")
+    @field:NotBlank(message = "{book.title.notBlank}")
+    @field:Size(max = 255, message = "{book.title.size.max}")
     val title: String,
 
-    @field:NotBlank(message = "ISBN is required")
-    @field:Size(min = 10, max = 13, message = "ISBN must be between 10 and 13 characters")
+    @field:NotBlank(message = "{book.isbn.notBlank}")
+    @field:Size(min = 10, max = 13, message = "{book.isbn.size}")
     val isbn: String,
 
-    @field:NotNull(message = "Publisher ID is required")
-    @field:Positive(message = "Invalid Publisher ID")
+    @field:NotNull(message = "{book.publisherId.notNull}")
+    @field:Positive(message = "{book.publisherId.positive}")
     var publisherId: Long? = null,
 
-    @field:NotNull(message = "Publication date is required")
-    @field:PastOrPresent(message = "Publication date cannot be in the future")
+    @field:NotNull(message = "{book.publicationDate.notNull}")
+    @field:PastOrPresent(message = "{book.publicationDate.pastOrPresent}")
     var publicationDate: LocalDate? = null,
 
-    @field:NotNull(message = "Page count is required")
-    @field:Min(value = 1, message = "Page count must be at least 1")
+    @field:NotNull(message = "{book.pageCount.notNull}")
+    @field:Min(value = 1, message = "{book.pageCount.min}")
     var pageCount: Short? = null,
 
-    @field:NotEmpty(message = "A book must have at least one genre")
+    @field:NotEmpty(message = "{book.genreIds.notEmpty}")
     val genreIds: List<Long> = emptyList(),
 
-    @field:NotEmpty(message = "A book must have at least one author")
+    @field:NotEmpty(message = "{book.authorIds.notEmpty}")
     val authorIds: List<Long> = emptyList()
 )

@@ -1,52 +1,71 @@
 package tech.provokedynamic.wdusbmidterm.exception
 
+import org.springframework.context.MessageSource
 import org.springframework.http.HttpStatus
+import org.springframework.http.ResponseEntity
 import org.springframework.ui.Model
+import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.annotation.ControllerAdvice
 import org.springframework.web.bind.annotation.ExceptionHandler
-import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.servlet.resource.NoResourceFoundException
+import tech.provokedynamic.wdusbmidterm.dto.response.ErrorResponse
+import java.util.Locale
 
 @ControllerAdvice
-class GlobalExceptionHandler {
+class GlobalExceptionHandler(
+    private val messageSource: MessageSource
+) {
+
+    private fun msg(key: String, locale: Locale, vararg args: Any): String =
+        messageSource.getMessage(key, args.ifEmpty { null }, key, locale)!!
+
+    private fun respond(
+        status: HttpStatus,
+        error: String,
+        message: String,
+        model: Model?,
+        fields: Map<String, String>? = null
+    ): Any = if (model != null) {
+        model.addAttribute("status", status.value())
+        model.addAttribute("message", message)
+        "error"
+    } else {
+        ResponseEntity.status(status)
+            .body(ErrorResponse(status.value(), error, message, fields))
+    }
 
     @ExceptionHandler(EntityNotFoundException::class)
-    @ResponseStatus(HttpStatus.NOT_FOUND)
-    fun handleNotFound(ex: EntityNotFoundException, model: Model): String {
-        model.addAttribute("status", 404)
-        model.addAttribute("message", ex.message)
-        return "error"
-    }
+    fun handleNotFound(locale: Locale, model: Model?) =
+        respond(HttpStatus.NOT_FOUND, "Not Found", msg("error.entity.notFound", locale), model)
 
     @ExceptionHandler(EntityDeletedException::class)
-    @ResponseStatus(HttpStatus.GONE)
-    fun handleDeleted(ex: EntityDeletedException, model: Model): String {
-        model.addAttribute("status", 410)
-        model.addAttribute("message", ex.message)
-        return "error"
-    }
+    fun handleDeleted(locale: Locale, model: Model?) =
+        respond(HttpStatus.GONE, "Gone", msg("error.entity.deleted", locale), model)
 
     @ExceptionHandler(EntityAlreadyExistsException::class)
-    @ResponseStatus(HttpStatus.CONFLICT)
-    fun handleConflict(ex: EntityAlreadyExistsException, model: Model): String {
-        model.addAttribute("status", 409)
-        model.addAttribute("message", ex.message)
-        return "error"
+    fun handleConflict(locale: Locale, model: Model?) =
+        respond(HttpStatus.CONFLICT, "Conflict", msg("error.entity.alreadyExists", locale), model)
+
+    @ExceptionHandler(MethodArgumentNotValidException::class)
+    fun handleValidation(ex: MethodArgumentNotValidException, locale: Locale): ResponseEntity<ErrorResponse> {
+        val fields = ex.bindingResult.fieldErrors.associate { fe ->
+            fe.field to (fe.defaultMessage ?: msg("error.validation", locale))
+        }
+        @Suppress("UNCHECKED_CAST")
+        return respond(
+            HttpStatus.UNPROCESSABLE_ENTITY,
+            "Unprocessable Entity",
+            msg("error.validation", locale),
+            null,
+            fields
+        ) as ResponseEntity<ErrorResponse>
     }
 
     @ExceptionHandler(NoResourceFoundException::class)
-    @ResponseStatus(HttpStatus.NOT_FOUND)
-    fun handleNoResourceFound(model: Model): String {
-        model.addAttribute("status", 404)
-        model.addAttribute("message", "Page not found.")
-        return "error"
-    }
+    fun handleNoResourceFound(locale: Locale, model: Model?) =
+        respond(HttpStatus.NOT_FOUND, "Not Found", msg("error.notFound.page", locale), model)
 
     @ExceptionHandler(Exception::class)
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    fun handleGeneral(model: Model): String {
-        model.addAttribute("status", 500)
-        model.addAttribute("message", "Something went wrong. Please try again.")
-        return "error"
-    }
+    fun handleGeneral(locale: Locale, model: Model?) =
+        respond(HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error", msg("error.internal", locale), model)
 }

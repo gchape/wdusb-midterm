@@ -4,16 +4,16 @@ import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Size
 
 data class AuthorRequest(
-    @field:NotBlank(message = "First name can not be blank")
-    @field:Size(min = 2, message = "First name must be at least 2 characters")
-    @field:Size(max = 255, message = "First name cannot exceed 255 characters")
+    @field:NotBlank(message = "{author.firstName.notBlank}")
+    @field:Size(min = 2, message = "{author.firstName.size.min}")
+    @field:Size(max = 255, message = "{author.firstName.size.max}")
     val firstName: String,
 
-    @field:NotBlank(message = "Last name can not be blank")
-    @field:Size(min = 2, message = "Last name must be at least 2 characters")
-    @field:Size(max = 60, message = "Last name cannot exceed 60 characters")
+    @field:NotBlank(message = "{author.lastName.notBlank}")
+    @field:Size(min = 2, message = "{author.lastName.size.min}")
+    @field:Size(max = 60, message = "{author.lastName.size.max}")
     val lastName: String,
 
-    @field:Size(max = 5000, message = "Bio is too long")
+    @field:Size(max = 5000, message = "{author.bio.size.max}")
     val bio: String?,
 )
