@@ -44,8 +44,8 @@ The application follows a layered architecture:
 ### Exception Layer
 
 - Typed domain exceptions: `EntityNotFoundException`, `EntityAlreadyExistsException`, `EntityDeletedException`.
-- `@ControllerAdvice` in `GlobalExceptionHandler` renders the `error.kte` template or returns JSON error responses for
-  the API.
+- `@RestControllerAdvice` in `GlobalExceptionHandler` returns structured JSON `ErrorResponse` objects for all API
+  errors, with messages resolved from the active locale.
 
 ---
 
@@ -123,53 +123,172 @@ Any route not listed as public requires an authenticated session.
 
 ---
 
+## Assignment 2 Features
+
+### Profiles
+
+| Profile | Database              | Swagger  | Log level    | Registration |
+|:--------|:----------------------|:---------|:-------------|:-------------|
+| `dev`   | H2 in-memory (seeded) | enabled  | DEBUG / INFO | enabled      |
+| `prod`  | PostgreSQL            | disabled | WARN         | disabled     |
+
+**Command line:**
+
+```bash
+# Development — H2 in-memory, Swagger UI on, DEBUG logging, seeds 30 books / 20 authors / 10 genres
+./mvnw spring-boot:run -Dspring-boot.run.profiles=dev
+
+# Production — PostgreSQL, Swagger off, WARN logging
+./mvnw spring-boot:run -Dspring-boot.run.profiles=prod
+```
+
+**IntelliJ IDEA:** Run → Edit Configurations → Active profiles → enter `dev` or `prod`.
+
+The `dev` profile requires no external database. Flyway runs H2-compatible migrations automatically and seeds all data
+on startup. Data resets on every restart.
+
+---
+
+### Custom Configuration Properties (`app.*`)
+
+Defined in `AppProperties` (`@ConfigurationProperties(prefix = "app")`, `@Validated`). Fields are validated with JSR-303
+constraints (`@NotBlank`, `@Email`, `@Min`, `@Positive`). The class is injected into `HomeController`, `HomeService`,
+and `InfoRestController`. Active runtime values are exposed at `GET /api/info`.
+
+| Property                            | Dev value                                  | Prod value                        | Role                                          |
+|:------------------------------------|:-------------------------------------------|:----------------------------------|:----------------------------------------------|
+| `app.title`                         | `Library System [DEV]`                     | `Library System`                  | Application display name on home page and API |
+| `app.description`                   | `Development environment — data resets...` | `The university library catalog.` | Subtitle shown on home page and `/api/info`   |
+| `app.organization`                  | `WDUSB University Library`                 | same                              | Organization name in API metadata             |
+| `app.contact-email`                 | `library@wdusb.edu`                        | same                              | Contact email in API metadata (validated)     |
+| `app.default-page-size`             | `6`                                        | `12`                              | Default number of results per page            |
+| `app.max-page-size`                 | `50`                                       | `100`                             | Maximum allowed page size                     |
+| `app.features.swagger-enabled`      | `true`                                     | `false`                           | Enables/disables Springdoc UI                 |
+| `app.features.registration-enabled` | `true`                                     | `false`                           | Enables/disables self-registration            |
+| `app.features.catalog-public`       | `true`                                     | `true`                            | Makes catalog browsable without login         |
+| `app.maintenance.cache-ttl-minutes` | `1`                                        | `10`                              | Caffeine cache TTL in minutes                 |
+| `app.maintenance.show-sql-in-logs`  | `true`                                     | `false`                           | Toggles Hibernate SQL logging                 |
+
+---
+
+### Internationalization (i18n)
+
+The API reads the standard `Accept-Language` HTTP header to return localized messages. Supported locales: **`en`** (
+default) and **`ka`** (Georgian).
+
+**What is localized:**
+
+- All REST error responses (404, 409, 410, 422, 500) via `GlobalExceptionHandler`
+- All `@Valid` DTO field validation error messages (`BookRequest`, `AuthorRequest`, `GenreRequest`, `PublisherRequest`,
+  `RegisterRequest`)
+
+**Resource bundle files:**
+
+| File                                        | Locale             |
+|:--------------------------------------------|:-------------------|
+| `src/main/resources/messages.properties`    | Fallback (English) |
+| `src/main/resources/messages_en.properties` | Explicit English   |
+| `src/main/resources/messages_ka.properties` | Georgian           |
+
+> `messages.properties` and `messages_en.properties` are intentionally identical. The former is the Spring fallback when
+> no locale-specific file matches.
+
+**Testing with curl:**
+
+```bash
+# English (default)
+curl http://localhost:8080/api/books/99999
+
+# Georgian
+curl -H "Accept-Language: ka" http://localhost:8080/api/books/99999
+
+# Trigger a validation error in Georgian
+curl -s -X POST http://localhost:8080/api/books \
+  -H "Content-Type: application/json" \
+  -H "Accept-Language: ka" \
+  -d '{}'
+```
+
+---
+
+### Structured Logging
+
+Configured via `logback-spring.xml`. Logs are written to both the console and a rolling file appender.
+
+**Log file location:** `logs/app.log` (relative to the working directory where the app is launched).
+
+Rolling policy: rotates daily and at 10 MB per file, compressed as `.log.gz`, retains 30 days / 500 MB total. The
+`logs/` directory is excluded from version control via `.gitignore`.
+
+| Profile        | App package (`tech.provokedynamic`) | Root level | Hibernate SQL |
+|:---------------|:------------------------------------|:-----------|:--------------|
+| `dev`          | DEBUG                               | INFO       | DEBUG + TRACE |
+| `prod`         | WARN                                | WARN       | off           |
+| _(no profile)_ | —                                   | INFO       | off           |
+
+Loggers are in place across 5 components: `AuthorService`, `BookService`, `UserService`, `UserDetailsService`, and
+`GlobalExceptionHandler`. All log statements use SLF4J parameterized placeholders (no string concatenation).
+
+---
+
 ## Project Hierarchy
 
 ```text
 .
 ├── src/main/
 │   ├── kotlin/tech/provokedynamic/wdusbmidterm/
+│   │   ├── config/
+│   │   │   ├── AppProperties.kt     # @ConfigurationProperties + JSR-303 validation
+│   │   │   └── I18nConfig.kt        # AcceptHeaderLocaleResolver, MessageSource, Validator
 │   │   ├── controller/
-│   │   │   ├── api/             # REST Endpoints (JSON)
-│   │   │   └── ...              # View Controllers (KTE)
+│   │   │   ├── api/                 # REST Endpoints (JSON)
+│   │   │   │   └── InfoRestController.kt  # GET /api/info — exposes active config
+│   │   │   └── ...                  # View Controllers (KTE)
 │   │   ├── dto/
-│   │   │   ├── request/         # Request payloads
-│   │   │   └── response/        # Response interfaces (projections)
-│   │   ├── entity/              # JPA Entities + toResponse() extension functions
-│   │   ├── exception/           # Custom Errors & Global Handler
-│   │   ├── model/
-│   │   │   └── view/            # UI-specific ViewModels
-│   │   ├── repository/          # Spring Data JPA Repositories
-│   │   ├── security/            # SecurityConfig
-│   │   └── service/             # Business Logic & Transactions
-│   ├── kte/                     # KTE Templates (.kte)
+│   │   │   ├── request/             # Request payloads (all validation keys use {bundle.key})
+│   │   │   └── response/            # Response interfaces (projections) + ErrorResponse
+│   │   ├── entity/                  # JPA Entities + toResponse() extension functions
+│   │   ├── exception/               # Custom Errors & GlobalExceptionHandler (@RestControllerAdvice)
+│   │   ├── model/                   # Role enum
+│   │   ├── repository/              # Spring Data JPA Repositories
+│   │   ├── security/                # SecurityConfig
+│   │   └── service/                 # Business Logic & Transactions
+│   ├── kte/                         # KTE Templates (.kte)
 │   └── resources/
-│       ├── db/migration/        # Flyway SQL scripts
-│       ├── static/              # CSS
-│       └── application.yaml     # App configuration
-├── docker-compose.yaml          # Orchestration
-└── pom.xml                      # KTE source set: src/main/kte
+│       ├── db/migration/            # Flyway SQL scripts (PostgreSQL)
+│       ├── db/migration/h2/         # Flyway SQL scripts (H2 — dev profile)
+│       ├── static/                  # CSS
+│       ├── messages.properties      # i18n fallback (English)
+│       ├── messages_en.properties   # i18n English
+│       ├── messages_ka.properties   # i18n Georgian
+│       ├── logback-spring.xml       # Profile-driven logging config
+│       └── application.yaml         # App configuration (base + dev + prod profiles)
+├── logs/                            # Generated at runtime — gitignored
+│   └── app.log
+├── docker-compose.yaml              # Orchestration
+└── pom.xml
 ```
 
 ---
 
 ## Technologies
 
-| Technology              | Usage                                               |
-|:------------------------|:----------------------------------------------------|
-| **Kotlin**              | Primary language                                    |
-| **JDK 25**              | Runtime                                             |
-| **Spring Boot**         | Application framework                               |
-| **Spring Security**     | Authentication, authorization, CSRF protection      |
-| **SpringDoc / Swagger** | OpenAPI 3.0 API Documentation                       |
-| **Spring Data JPA**     | Repository layer                                    |
-| **Hibernate**           | ORM                                                 |
-| **PostgreSQL**          | Database                                            |
-| **Flyway**              | Schema migrations                                   |
-| **Caffeine**            | In-process cache provider                           |
-| **KTE**                 | Server-side template engine (Kotlin version of JTE) |
-| **Logback**             | Logging with Spring profiles                        |
-| **Docker**              | Containerization                                    |
+| Technology              | Usage                                                |
+|:------------------------|:-----------------------------------------------------|
+| **Kotlin**              | Primary language                                     |
+| **JDK 25**              | Runtime                                              |
+| **Spring Boot**         | Application framework                                |
+| **Spring Security**     | Authentication, authorization, CSRF protection       |
+| **SpringDoc / Swagger** | OpenAPI 3.0 API Documentation                        |
+| **Spring Data JPA**     | Repository layer                                     |
+| **Hibernate**           | ORM                                                  |
+| **PostgreSQL**          | Database (prod profile)                              |
+| **H2**                  | In-memory database (dev profile)                     |
+| **Flyway**              | Schema migrations (separate scripts per DB)          |
+| **Caffeine**            | In-process cache provider                            |
+| **KTE**                 | Server-side template engine (Kotlin version of JTE)  |
+| **SLF4J / Logback**     | Structured logging with Spring profile–driven config |
+| **Docker**              | Containerization                                     |
 
 ---
 
@@ -219,6 +338,7 @@ The API is documented via Swagger UI at `/swagger-ui.html` (enabled only in `dev
 
 | Method   | Path                      | Description              |
 |:---------|:--------------------------|:-------------------------|
+| `GET`    | `/api/info`               | Active config & features |
 | `GET`    | `/api/books`              | Paginated catalog        |
 | `GET`    | `/api/authors`            | Paginated authors list   |
 | `GET`    | `/api/authors/{id}/books` | Books by specific author |
@@ -247,7 +367,7 @@ The API is documented via Swagger UI at `/swagger-ui.html` (enabled only in `dev
 - `GenreRequest` — `name`
 - `RegisterRequest` — `username`, `password`, `confirmPassword`
 
-### Response Interfaces (`dto/response`)
+### Response Types (`dto/response`)
 
 - `BookCatalogResponse` — `id`, `title`, `isbn`, `pageCount`, `publicationDate`, `genres`
 - `BookDetailResponse` — full book detail including `publisher`, `authors`, `genres`
@@ -256,6 +376,8 @@ The API is documented via Swagger UI at `/swagger-ui.html` (enabled only in `dev
 - `AuthorBookResponse` — `id`, `title`, `publicationDate`, `genres`
 - `PublisherResponse` — `id`, `name`
 - `GenreResponse` — `id`, `name`
+- `AppInfoResponse` — active profile, config metadata, feature flags, pagination settings
+- `ErrorResponse` — `status`, `error`, `message`, optional `fields` map (validation errors)
 
 ---
 
@@ -286,13 +408,21 @@ Cache names follow the `entity:concern` naming convention:
 
 ## Database Migrations (Flyway)
 
-Files located in `src/main/resources/db/migration/`:
+### PostgreSQL (`src/main/resources/db/migration/`)
 
 | File                | Description                                             |
 |:--------------------|:--------------------------------------------------------|
 | `V1__init.sql`      | Schema: publishers, authors, genres, books, join tables |
 | `V2__seed_data.sql` | Seed data: publishers, authors, books, genres           |
 | `V3__users.sql`     | Schema: users table, sequence, seeded admin and user    |
+
+### H2 — dev profile (`src/main/resources/db/migration/h2/`)
+
+| File                                   | Description                              |
+|:---------------------------------------|:-----------------------------------------|
+| `V1__init_h2.sql`                      | H2-compatible schema                     |
+| `V2__seed_data_h2.sql`                 | Seed data (30 books, 20 authors, genres) |
+| `V3__add_spring_security_users_h2.sql` | Users table + seeded admin/user accounts |
 
 ---
 
@@ -317,26 +447,15 @@ Server-side rendering using JTE with Kotlin (`.kte` files) in `src/main/kte/`.
 
 ---
 
-## Logging
-
-Configured via `logback-spring.xml` with Spring profiles:
-
-| Profile | Root Level | SQL Logging                               |
-|:--------|:-----------|:------------------------------------------|
-| `dev`   | INFO       | DEBUG + TRACE (Hibernate SQL + bindings)  |
-| `prod`  | WARN       | Off (Swagger UI & API Docs also disabled) |
-
----
-
 ## Running the Application
 
-### Development (local)
-
-Make sure PostgreSQL is running locally on port `5432`, then:
+### Development (local, no external database needed)
 
 ```bash
 ./mvnw spring-boot:run -Dspring-boot.run.profiles=dev
 ```
+
+H2 console available at `http://localhost:8080/h2-console` (JDBC URL: `jdbc:h2:mem:libsysdb`).
 
 ### Production (Docker)
 
@@ -355,6 +474,11 @@ migrations automatically.
 - [x] REST API Layer with OpenAPI
 - [x] Caching with Caffeine
 - [x] User authentication with Spring Security
+- [x] Externalized configuration with Spring Profiles
+- [x] Internationalization (en / ka)
+- [x] Structured logging with file rotation
+
+---
 
 ## Performance & Optimization
 
@@ -383,6 +507,8 @@ migrations automatically.
 - **Enabled HTTP compression** in `application.yaml` for HTML, CSS, and JS responses.
 - **Added Caffeine caching** — all read paths served from in-process cache; write operations evict stale entries via
   `@CacheEvict`.
+
+---
 
 ## Author
 
