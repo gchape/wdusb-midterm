@@ -1,14 +1,6 @@
 package tech.provokedynamic.wdusbmidterm.entity
 
-import jakarta.persistence.Column
-import jakarta.persistence.Entity
-import jakarta.persistence.EnumType
-import jakarta.persistence.Enumerated
-import jakarta.persistence.GeneratedValue
-import jakarta.persistence.GenerationType
-import jakarta.persistence.Id
-import jakarta.persistence.SequenceGenerator
-import jakarta.persistence.Table
+import jakarta.persistence.*
 import jakarta.validation.constraints.Size
 import org.hibernate.annotations.SourceType
 import org.jetbrains.annotations.NotNull
@@ -17,8 +9,7 @@ import java.time.Instant
 
 @Entity
 @Table(name = "users", schema = "public")
-open class User (
-
+open class User(
     @NotNull
     @Size(max = 100)
     @Column(name = "username", length = 100, unique = true, nullable = false)
@@ -37,8 +28,7 @@ open class User (
     var enabled: Boolean = true,
 ) {
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "users_id_gen")
-    @SequenceGenerator(name = "users_id_gen", sequenceName = "users_id_seq", allocationSize = 1)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long = 0
 
     @NotNull

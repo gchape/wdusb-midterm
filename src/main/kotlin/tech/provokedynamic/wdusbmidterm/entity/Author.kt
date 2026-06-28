@@ -21,8 +21,7 @@ open class Author(
     var lastName: String
 ) {
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "authors_id_gen")
-    @SequenceGenerator(name = "authors_id_gen", sequenceName = "authors_id_seq", allocationSize = 1)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     var id: Long = 0
         protected set

@@ -39,8 +39,7 @@ open class Book(
     var pageCount: Short
 ) {
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "books_id_gen")
-    @SequenceGenerator(name = "books_id_gen", sequenceName = "books_id_seq", allocationSize = 1)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     var id: Long = 0
         protected set
@@ -69,7 +68,7 @@ open class Book(
 
     @NotNull
     @Column(name = "updated_at", insertable = false, updatable = false)
-    @org.hibernate.annotations.CreationTimestamp(source = SourceType.DB)
+    @org.hibernate.annotations.UpdateTimestamp(source = SourceType.DB)
     var updatedAt: Instant = Instant.now()
         protected set
 

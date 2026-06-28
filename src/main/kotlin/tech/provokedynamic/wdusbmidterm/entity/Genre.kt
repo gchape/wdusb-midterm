@@ -14,8 +14,7 @@ open class Genre(
     var name: String
 ) {
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "genres_id_gen")
-    @SequenceGenerator(name = "genres_id_gen", sequenceName = "genres_id_seq", allocationSize = 1)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     var id: Long = 0
         protected set

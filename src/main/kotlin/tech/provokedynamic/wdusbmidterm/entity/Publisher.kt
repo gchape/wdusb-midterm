@@ -16,8 +16,7 @@ open class Publisher(
     var name: String
 ) {
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "publishers_id_gen")
-    @SequenceGenerator(name = "publishers_id_gen", sequenceName = "publishers_id_seq", allocationSize = 1)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     var id: Long = 0
         protected set
@@ -35,7 +34,6 @@ open class Publisher(
 fun Publisher.toResponse(): PublisherResponse = object : PublisherResponse {
     override val id: Long
         get() = this@toResponse.id
-
     override val name: String
         get() = this@toResponse.name
 }
