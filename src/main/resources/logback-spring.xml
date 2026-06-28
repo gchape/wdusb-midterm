@@ -2,11 +2,15 @@
 <configuration>
 
     <property name="LOG_PATH" value="logs"/>
-    <property name="LOG_PATTERN" value="%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"/>
+    <property name="APP_PACKAGE" value="tech.provokedynamic.wdusbmidterm"/>
+    <property name="LOG_PATTERN"
+              value="%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{40} - %msg%n"/>
+    <property name="LOG_PATTERN_COLORED"
+              value="%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %highlight(%-5level) %cyan(%logger{40}) - %msg%n"/>
 
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
-            <pattern>${LOG_PATTERN}</pattern>
+            <pattern>${LOG_PATTERN_COLORED}</pattern>
         </encoder>
     </appender>
 
@@ -15,20 +19,20 @@
         <encoder>
             <pattern>${LOG_PATTERN}</pattern>
         </encoder>
-        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
             <fileNamePattern>${LOG_PATH}/app.%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
-            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
-                <maxFileSize>10MB</maxFileSize>
-            </timeBasedFileNamingAndTriggeringPolicy>
+            <maxFileSize>10MB</maxFileSize>
             <maxHistory>30</maxHistory>
             <totalSizeCap>500MB</totalSizeCap>
         </rollingPolicy>
     </appender>
 
     <springProfile name="dev">
-        <logger name="tech.provokedynamic.wdusbmidterm" level="DEBUG"/>
+        <logger name="${APP_PACKAGE}" level="DEBUG"/>
         <logger name="org.hibernate.SQL" level="DEBUG"/>
         <logger name="org.hibernate.orm.jdbc.bind" level="TRACE"/>
+        <logger name="org.springframework.security" level="DEBUG"/>
+        <logger name="org.springframework.cache" level="DEBUG"/>
 
         <root level="INFO">
             <appender-ref ref="CONSOLE"/>
@@ -37,7 +41,8 @@
     </springProfile>
 
     <springProfile name="prod">
-        <logger name="tech.provokedynamic.wdusbmidterm" level="WARN"/>
+        <logger name="${APP_PACKAGE}" level="WARN"/>
+        <logger name="org.springframework.security" level="WARN"/>
 
         <root level="WARN">
             <appender-ref ref="CONSOLE"/>
@@ -45,10 +50,14 @@
         </root>
     </springProfile>
 
-    <springProfile name="!dev &amp; !prod">
-        <root level="INFO">
+    <springProfile name="test">
+        <logger name="${APP_PACKAGE}" level="WARN"/>
+        <logger name="org.springframework" level="WARN"/>
+        <logger name="org.hibernate" level="WARN"/>
+        <logger name="org.flywaydb" level="INFO"/>
+
+        <root level="WARN">
             <appender-ref ref="CONSOLE"/>
-            <appender-ref ref="FILE"/>
         </root>
     </springProfile>
 
