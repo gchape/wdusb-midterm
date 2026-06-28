@@ -19,6 +19,7 @@ import java.util.concurrent.TimeUnit
 @EnableCaching(mode = AdviceMode.PROXY)
 @ComponentScan(
     basePackages = [
+        "tech.provokedynamic.wdusbmidterm.config",
         "tech.provokedynamic.wdusbmidterm.service",
         "tech.provokedynamic.wdusbmidterm.security",
         "tech.provokedynamic.wdusbmidterm.repository",
