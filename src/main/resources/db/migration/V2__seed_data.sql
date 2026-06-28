@@ -180,7 +180,7 @@ VALUES (8, 1),
        (37, 1),
        (37, 11);
 
-SELECT setval('publishers_id_seq', (SELECT MAX(id) FROM publishers));
-SELECT setval('authors_id_seq', (SELECT MAX(id) FROM authors));
-SELECT setval('books_id_seq', (SELECT MAX(id) FROM books));
-SELECT setval('genres_id_seq', (SELECT MAX(id) FROM genres));
+ALTER TABLE publishers ALTER COLUMN id RESTART WITH 20;
+ALTER TABLE authors ALTER COLUMN id RESTART WITH 28;
+ALTER TABLE books ALTER COLUMN id RESTART WITH 38;
+ALTER TABLE genres ALTER COLUMN id RESTART WITH 16;
