@@ -4,8 +4,10 @@ import org.slf4j.LoggerFactory
 import org.springframework.context.MessageSource
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.http.converter.HttpMessageNotReadableException
 import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.annotation.ExceptionHandler
+import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestControllerAdvice
 import org.springframework.web.servlet.resource.NoResourceFoundException
 import tech.provokedynamic.wdusbmidterm.dto.response.ErrorResponse
@@ -61,5 +63,19 @@ class GlobalExceptionHandler(
     fun handleGeneral(ex: Exception, locale: Locale): ResponseEntity<ErrorResponse> {
         log.error("Unhandled exception: {}", ex.message, ex)
         return error(HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error", msg("error.internal", locale))
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException::class)
+    @ResponseStatus(HttpStatus.UNPROCESSABLE_ENTITY)
+    fun handleHttpMessageNotReadable(ex: HttpMessageNotReadableException): ResponseEntity<ErrorResponse> {
+        log.debug("Message not readable: ${ex.message}")
+        return ResponseEntity
+            .unprocessableEntity()
+            .body(ErrorResponse(
+                status = 422,
+                error = "Unprocessable Entity",
+                message = "Invalid or missing required fields",
+                fields = null
+            ))
     }
 }
