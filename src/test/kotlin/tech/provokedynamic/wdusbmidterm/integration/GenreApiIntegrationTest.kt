@@ -1,39 +1,86 @@
 package tech.provokedynamic.wdusbmidterm.integration
 
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.context.annotation.Import
 import org.springframework.http.MediaType
+import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
+import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
-import org.springframework.transaction.annotation.Transactional
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import org.springframework.test.web.servlet.setup.DefaultMockMvcBuilder
+import org.springframework.test.web.servlet.setup.MockMvcBuilders
+import org.springframework.web.context.WebApplicationContext
+import tech.provokedynamic.wdusbmidterm.config.TestCacheConfig
 
-/**
- * Full integration tests: boots the complete application context (H2 + Flyway + Security).
- * Uses seeded data from V2__seed_data_h2.sql.
- */
 @SpringBootTest
-@AutoConfigureMockMvc
 @ActiveProfiles("dev")
-@Transactional
+@Import(TestCacheConfig::class)
 @DisplayName("Genre API Integration Tests")
 class GenreApiIntegrationTest {
 
     @Autowired
+    lateinit var wac: WebApplicationContext
+    @Autowired
+    lateinit var jdbcTemplate: JdbcTemplate
+
     lateinit var mockMvc: MockMvc
+
+    @BeforeEach
+    fun setUp() {
+        mockMvc = MockMvcBuilders
+            .webAppContextSetup(wac)
+            .apply<DefaultMockMvcBuilder>(springSecurity())
+            .build()
+    }
+
+    private fun wipeGenres() {
+        jdbcTemplate.execute("DELETE FROM public.book_genres")
+        jdbcTemplate.execute("DELETE FROM public.genres")
+        jdbcTemplate.execute("ALTER TABLE public.genres ALTER COLUMN id RESTART WITH 1000")
+    }
+
+    private fun restoreFullSeed() {
+        wipeGenres()
+        jdbcTemplate.execute(
+            """
+            INSERT INTO public.genres (id, name) VALUES
+              (1,  'Science Fiction'),
+              (2,  'Fantasy'),
+              (3,  'Epic Fantasy'),
+              (9,  'Dystopian'),
+              (10, 'Cyberpunk'),
+              (11, 'Space Opera'),
+              (12, 'Hard Science Fiction'),
+              (13, 'Speculative Fiction'),
+              (14, 'Alternate History'),
+              (15, 'Post-Apocalyptic')
+        """.trimIndent()
+        )
+    }
+
+    private fun wipAndReseedOne() {
+        wipeGenres()
+        jdbcTemplate.execute("INSERT INTO public.genres (id, name) VALUES (1, 'Science Fiction')")
+    }
 
     // ── Read endpoints (public) ──────────────────────────────────────────────
 
     @Nested
     @DisplayName("GET /api/genres")
     inner class GetAllGenres {
+
+        @BeforeEach
+        fun seed() = restoreFullSeed()
 
         @Test
         @DisplayName("returns 200 with seeded genres")
@@ -55,6 +102,9 @@ class GenreApiIntegrationTest {
     @Nested
     @DisplayName("GET /api/genres/{id}")
     inner class GetGenreById {
+
+        @BeforeEach
+        fun seed() = restoreFullSeed()
 
         @Test
         @DisplayName("returns 200 with genre for seeded id=1")
@@ -80,6 +130,9 @@ class GenreApiIntegrationTest {
     @Nested
     @DisplayName("POST /api/genres")
     inner class CreateGenre {
+
+        @BeforeEach
+        fun resetForWrites() = wipAndReseedOne()
 
         @Test
         @WithMockUser(roles = ["ADMIN"])
@@ -153,6 +206,9 @@ class GenreApiIntegrationTest {
     @DisplayName("DELETE /api/genres/{id}")
     inner class DeleteGenre {
 
+        @BeforeEach
+        fun resetForWrites() = wipAndReseedOne()
+
         @Test
         @WithMockUser(roles = ["ADMIN"])
         @DisplayName("returns 204 for seeded genre id=1")
@@ -160,7 +216,6 @@ class GenreApiIntegrationTest {
             mockMvc.perform(delete("/api/genres/1").with(csrf()))
                 .andExpect(status().isNoContent)
 
-            // Verify it's gone
             mockMvc.perform(get("/api/genres/1"))
                 .andExpect(status().isNotFound)
         }
