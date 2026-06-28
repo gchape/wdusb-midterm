@@ -4,15 +4,16 @@ import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
 import org.springframework.http.MediaType
-import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.transaction.annotation.Transactional
 
 @SpringBootTest
@@ -35,7 +36,7 @@ class AuthorApiIntegrationTest {
             mockMvc.perform(get("/api/authors?page=1&size=10"))
                 .andExpect(status().isOk)
                 .andExpect(jsonPath("$.content").isArray)
-                .andExpect(jsonPath("$.totalElements").value(20))  // 20 seeded authors
+                .andExpect(jsonPath("$.totalElements").value(20))
         }
 
         @Test
@@ -88,26 +89,25 @@ class AuthorApiIntegrationTest {
     inner class CreateAuthor {
 
         @Test
-        @WithMockUser(roles = ["ADMIN"])
-        @DisplayName("creates new author and returns 201")
+        @DisplayName("creates new author and returns 409 (already seeded)")
         fun create_success() {
             mockMvc.perform(
                 post("/api/authors")
                     .with(csrf())
+                    .with(user("admin").roles("ADMIN"))
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content("""{"firstName":"Ursula","lastName":"Le Guin","bio":"American author"}""")
+                    .content("""{"firstName":"Ursula K.","lastName":"Le Guin","bio":"American author"}""")
             )
-                // author already seeded — expect 409
                 .andExpect(status().isConflict)
         }
 
         @Test
-        @WithMockUser(roles = ["ADMIN"])
         @DisplayName("creates genuinely new author and returns 201")
         fun create_newAuthor() {
             mockMvc.perform(
                 post("/api/authors")
                     .with(csrf())
+                    .with(user("admin").roles("ADMIN"))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content("""{"firstName":"Toni","lastName":"Morrison","bio":"American novelist"}""")
             )
@@ -118,12 +118,12 @@ class AuthorApiIntegrationTest {
         }
 
         @Test
-        @WithMockUser(roles = ["ADMIN"])
         @DisplayName("returns 422 when firstName is too short")
         fun create_firstNameTooShort() {
             mockMvc.perform(
                 post("/api/authors")
                     .with(csrf())
+                    .with(user("admin").roles("ADMIN"))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content("""{"firstName":"A","lastName":"Morrison"}""")
             )
@@ -132,12 +132,12 @@ class AuthorApiIntegrationTest {
         }
 
         @Test
-        @WithMockUser(roles = ["USER"])
         @DisplayName("returns 403 for USER role")
         fun create_forbidden() {
             mockMvc.perform(
                 post("/api/authors")
                     .with(csrf())
+                    .with(user("regularuser").roles("USER"))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content("""{"firstName":"Toni","lastName":"Morrison"}""")
             )
@@ -150,12 +150,12 @@ class AuthorApiIntegrationTest {
     inner class UpdateAuthor {
 
         @Test
-        @WithMockUser(roles = ["ADMIN"])
         @DisplayName("updates seeded author and returns 200")
         fun update_success() {
             mockMvc.perform(
                 put("/api/authors/8")
                     .with(csrf())
+                    .with(user("admin").roles("ADMIN"))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content("""{"firstName":"Eric","lastName":"Blair","bio":"Pen name: George Orwell"}""")
             )
@@ -165,12 +165,12 @@ class AuthorApiIntegrationTest {
         }
 
         @Test
-        @WithMockUser(roles = ["ADMIN"])
         @DisplayName("returns 404 when updating non-existent author")
         fun update_notFound() {
             mockMvc.perform(
                 put("/api/authors/99999")
                     .with(csrf())
+                    .with(user("admin").roles("ADMIN"))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content("""{"firstName":"Nobody","lastName":"Here"}""")
             )
@@ -183,10 +183,13 @@ class AuthorApiIntegrationTest {
     inner class DeleteAuthor {
 
         @Test
-        @WithMockUser(roles = ["ADMIN"])
         @DisplayName("soft-deletes seeded author and returns 204")
         fun delete_success() {
-            mockMvc.perform(delete("/api/authors/8").with(csrf()))
+            mockMvc.perform(
+                delete("/api/authors/8")
+                    .with(csrf())
+                    .with(user("admin").roles("ADMIN"))
+            )
                 .andExpect(status().isNoContent)
 
             mockMvc.perform(get("/api/authors/8"))
@@ -194,10 +197,13 @@ class AuthorApiIntegrationTest {
         }
 
         @Test
-        @WithMockUser(roles = ["ADMIN"])
         @DisplayName("returns 404 for unknown author")
         fun delete_notFound() {
-            mockMvc.perform(delete("/api/authors/99999").with(csrf()))
+            mockMvc.perform(
+                delete("/api/authors/99999")
+                    .with(csrf())
+                    .with(user("admin").roles("ADMIN"))
+            )
                 .andExpect(status().isNotFound)
         }
     }
