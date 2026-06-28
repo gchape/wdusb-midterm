@@ -1,5 +1,6 @@
 package tech.provokedynamic.wdusbmidterm.security
 
+import jakarta.servlet.http.HttpServletResponse
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpMethod
@@ -31,45 +32,32 @@ class SecurityConfig(
     @Bean
     fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
         http
-            // Disable CSRF only for the stateless REST API (/api/**).
-            // Browser-facing MVC endpoints keep CSRF protection enabled.
             .csrf { csrf ->
-                csrf.ignoringRequestMatchers("/api/**")
+                csrf.ignoringRequestMatchers("/api/**", "/actuator/**")
             }
-
             .authorizeHttpRequests { auth ->
-                // Static assets
                 auth.requestMatchers("/css/**", "/js/**", "/images/**", "/favicon.ico").permitAll()
-
-                // Swagger / OpenAPI docs
                 auth.requestMatchers(
                     "/swagger-ui/**", "/swagger-ui.html",
                     "/v3/api-docs/**", "/v3/api-docs"
                 ).permitAll()
-
-                // Public read-only MVC pages
                 auth.requestMatchers(HttpMethod.GET, "/", "/books", "/books/{id}",
                     "/authors", "/authors/{id}").permitAll()
-
-                // Auth pages — /auth/register removed (AuthController maps only /register)
                 auth.requestMatchers("/login", "/register").permitAll()
-
-                // REST API: GET is public; mutating operations require ADMIN role
                 auth.requestMatchers(HttpMethod.GET, "/api/**").permitAll()
                 auth.requestMatchers(HttpMethod.POST, "/api/**").hasRole("ADMIN")
                 auth.requestMatchers(HttpMethod.PUT, "/api/**").hasRole("ADMIN")
                 auth.requestMatchers(HttpMethod.DELETE, "/api/**").hasRole("ADMIN")
-
-                // MVC mutating routes (GET + POST) require ADMIN
+                auth.requestMatchers("/actuator/health", "/actuator/info").permitAll()
+                auth.requestMatchers("/actuator/**").hasRole("ADMIN")
                 auth.requestMatchers(
                     "/books/new", "/books/*/edit", "/books/*/delete",
                     "/authors/add", "/authors/*/edit", "/authors/*/delete",
                     "/admin/**"
                 ).hasRole("ADMIN")
-
                 auth.anyRequest().authenticated()
             }
-
+            .httpBasic { }  // ← required for @WithMockUser
             .formLogin { login ->
                 login
                     .loginPage("/login")
@@ -78,7 +66,6 @@ class SecurityConfig(
                     .failureUrl("/login?error=true")
                     .permitAll()
             }
-
             .logout { logout ->
                 logout
                     .logoutUrl("/logout")
@@ -87,7 +74,22 @@ class SecurityConfig(
                     .deleteCookies("JSESSIONID")
                     .permitAll()
             }
-
+            .exceptionHandling { ex ->
+                ex.authenticationEntryPoint { request, response, _ ->
+                    if (request.requestURI.startsWith("/api/") || request.requestURI.startsWith("/actuator/")) {
+                        response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized")
+                    } else {
+                        response.sendRedirect(request.contextPath + "/login")
+                    }
+                }
+                ex.accessDeniedHandler { request, response, _ ->
+                    if (request.requestURI.startsWith("/api/") || request.requestURI.startsWith("/actuator/")) {
+                        response.sendError(HttpServletResponse.SC_FORBIDDEN, "Forbidden")
+                    } else {
+                        response.sendRedirect(request.contextPath + "/login?error=forbidden")
+                    }
+                }
+            }
         return http.build()
     }
 }
