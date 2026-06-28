@@ -38,6 +38,28 @@ gg:
     template-location: src/main/kte
     template-suffix: .kte
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,loggers,caches
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: when-authorized
+      show-components: when-authorized
+    info:
+      enabled: true
+    caches:
+      enabled: true
+  info:
+    env:
+      enabled: true
+    java:
+      enabled: true
+    os:
+      enabled: true
+
 app:
   title: "Library System"
   description: "A web-based catalog for managing books, authors, and publishers."
@@ -61,14 +83,14 @@ spring:
       on-profile: dev
 
   datasource:
-    url: jdbc:h2:mem:libsysdb;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    url: jdbc:h2:mem:libsysdb;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;
     driver-class-name: org.h2.Driver
     username: sa
     password:
 
   h2:
     console:
-      enabled: true          # accessible at http://localhost:8080/h2-console
+      enabled: true
       path: /h2-console
       settings:
         web-allow-others: false
@@ -77,16 +99,23 @@ spring:
     database-platform: org.hibernate.dialect.H2Dialect
     properties:
       hibernate.format_sql: true
+      hibernate.default_schema: public
 
   flyway:
     enabled: true
-    locations: classpath:db/migration/h2   # H2-compatible scripts
+    locations: classpath:db/migration/h2
     baseline-on-migrate: false
 
 gg:
   jte:
     development-mode: true
     expose-request-attributes: true
+
+management:
+  endpoint:
+    health:
+      show-details: always
+      show-components: always
 
 app:
   title: "Library System [DEV]"
@@ -126,7 +155,7 @@ spring:
 
   flyway:
     enabled: true
-    locations: classpath:db/migration   # standard PostgreSQL scripts
+    locations: classpath:db/migration
 
 springdoc:
   api-docs:
@@ -137,6 +166,12 @@ springdoc:
 gg:
   jte:
     usePrecompiledTemplates: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
 
 app:
   title: "Library System"
